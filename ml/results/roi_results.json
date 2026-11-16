@@ -1,0 +1,318 @@
+{
+  "simulated": true,
+  "assumptions": {
+    "offer_cost": 50,
+    "clv_months": 12,
+    "avg_customer_value": 769.0
+  },
+  "test_customers": 1409,
+  "headline_percent": 20,
+  "table": [
+    {
+      "method": "Churn risk",
+      "percent": 10,
+      "contacted": 141,
+      "customers_saved": 35.8,
+      "cost": 7050,
+      "value_saved": 33236.0,
+      "profit": 26186.0,
+      "roi": 3.714
+    },
+    {
+      "method": "Churn risk",
+      "percent": 20,
+      "contacted": 282,
+      "customers_saved": 59.1,
+      "cost": 14100,
+      "value_saved": 51679.0,
+      "profit": 37579.0,
+      "roi": 2.665
+    },
+    {
+      "method": "Churn risk",
+      "percent": 30,
+      "contacted": 423,
+      "customers_saved": 73.2,
+      "cost": 21150,
+      "value_saved": 62241.0,
+      "profit": 41091.0,
+      "roi": 1.943
+    },
+    {
+      "method": "Churn risk",
+      "percent": 40,
+      "contacted": 564,
+      "customers_saved": 87.4,
+      "cost": 28200,
+      "value_saved": 70846.0,
+      "profit": 42646.0,
+      "roi": 1.512
+    },
+    {
+      "method": "Churn risk",
+      "percent": 50,
+      "contacted": 704,
+      "customers_saved": 92.6,
+      "cost": 35200,
+      "value_saved": 74404.0,
+      "profit": 39204.0,
+      "roi": 1.114
+    },
+    {
+      "method": "Churn risk",
+      "percent": 60,
+      "contacted": 845,
+      "customers_saved": 96.8,
+      "cost": 42250,
+      "value_saved": 76207.0,
+      "profit": 33957.0,
+      "roi": 0.804
+    },
+    {
+      "method": "Churn risk",
+      "percent": 70,
+      "contacted": 986,
+      "customers_saved": 97.6,
+      "cost": 49300,
+      "value_saved": 75838.0,
+      "profit": 26538.0,
+      "roi": 0.538
+    },
+    {
+      "method": "Churn risk",
+      "percent": 80,
+      "contacted": 1127,
+      "customers_saved": 96.6,
+      "cost": 56350,
+      "value_saved": 74692.0,
+      "profit": 18342.0,
+      "roi": 0.325
+    },
+    {
+      "method": "Churn risk",
+      "percent": 90,
+      "contacted": 1268,
+      "customers_saved": 94.3,
+      "cost": 63400,
+      "value_saved": 72804.0,
+      "profit": 9404.0,
+      "roi": 0.148
+    },
+    {
+      "method": "Churn risk",
+      "percent": 100,
+      "contacted": 1409,
+      "customers_saved": 91.6,
+      "cost": 70450,
+      "value_saved": 71618.0,
+      "profit": 1168.0,
+      "roi": 0.017
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 10,
+      "contacted": 141,
+      "customers_saved": 28.6,
+      "cost": 7050,
+      "value_saved": 24237.0,
+      "profit": 17187.0,
+      "roi": 2.438
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 20,
+      "contacted": 282,
+      "customers_saved": 50.9,
+      "cost": 14100,
+      "value_saved": 42576.0,
+      "profit": 28476.0,
+      "roi": 2.02
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 30,
+      "contacted": 423,
+      "customers_saved": 70.3,
+      "cost": 21150,
+      "value_saved": 58160.0,
+      "profit": 37010.0,
+      "roi": 1.75
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 40,
+      "contacted": 564,
+      "customers_saved": 84.5,
+      "cost": 28200,
+      "value_saved": 69569.0,
+      "profit": 41369.0,
+      "roi": 1.467
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 50,
+      "contacted": 704,
+      "customers_saved": 90.2,
+      "cost": 35200,
+      "value_saved": 72985.0,
+      "profit": 37785.0,
+      "roi": 1.073
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 60,
+      "contacted": 845,
+      "customers_saved": 96.1,
+      "cost": 42250,
+      "value_saved": 75286.0,
+      "profit": 33036.0,
+      "roi": 0.782
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 70,
+      "contacted": 986,
+      "customers_saved": 95.2,
+      "cost": 49300,
+      "value_saved": 74722.0,
+      "profit": 25422.0,
+      "roi": 0.516
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 80,
+      "contacted": 1127,
+      "customers_saved": 93.3,
+      "cost": 56350,
+      "value_saved": 73681.0,
+      "profit": 17331.0,
+      "roi": 0.308
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 90,
+      "contacted": 1268,
+      "customers_saved": 92.9,
+      "cost": 63400,
+      "value_saved": 73162.0,
+      "profit": 9762.0,
+      "roi": 0.154
+    },
+    {
+      "method": "Uplift (T-learner)",
+      "percent": 100,
+      "contacted": 1409,
+      "customers_saved": 91.6,
+      "cost": 70450,
+      "value_saved": 71618.0,
+      "profit": 1168.0,
+      "roi": 0.017
+    },
+    {
+      "method": "Random",
+      "percent": 10,
+      "contacted": 141,
+      "customers_saved": 10.7,
+      "cost": 7050,
+      "value_saved": 8673.0,
+      "profit": 1623.0,
+      "roi": 0.23
+    },
+    {
+      "method": "Random",
+      "percent": 20,
+      "contacted": 282,
+      "customers_saved": 19.8,
+      "cost": 14100,
+      "value_saved": 16483.0,
+      "profit": 2383.0,
+      "roi": 0.169
+    },
+    {
+      "method": "Random",
+      "percent": 30,
+      "contacted": 423,
+      "customers_saved": 28.3,
+      "cost": 21150,
+      "value_saved": 22994.0,
+      "profit": 1844.0,
+      "roi": 0.087
+    },
+    {
+      "method": "Random",
+      "percent": 40,
+      "contacted": 564,
+      "customers_saved": 39.1,
+      "cost": 28200,
+      "value_saved": 31167.0,
+      "profit": 2967.0,
+      "roi": 0.105
+    },
+    {
+      "method": "Random",
+      "percent": 50,
+      "contacted": 704,
+      "customers_saved": 46.5,
+      "cost": 35200,
+      "value_saved": 37116.0,
+      "profit": 1916.0,
+      "roi": 0.054
+    },
+    {
+      "method": "Random",
+      "percent": 60,
+      "contacted": 845,
+      "customers_saved": 55.4,
+      "cost": 42250,
+      "value_saved": 43487.0,
+      "profit": 1237.0,
+      "roi": 0.029
+    },
+    {
+      "method": "Random",
+      "percent": 70,
+      "contacted": 986,
+      "customers_saved": 63.7,
+      "cost": 49300,
+      "value_saved": 49940.0,
+      "profit": 640.0,
+      "roi": 0.013
+    },
+    {
+      "method": "Random",
+      "percent": 80,
+      "contacted": 1127,
+      "customers_saved": 72.1,
+      "cost": 56350,
+      "value_saved": 55647.0,
+      "profit": -703.0,
+      "roi": -0.012
+    },
+    {
+      "method": "Random",
+      "percent": 90,
+      "contacted": 1268,
+      "customers_saved": 81.9,
+      "cost": 63400,
+      "value_saved": 63322.0,
+      "profit": -78.0,
+      "roi": -0.001
+    },
+    {
+      "method": "Random",
+      "percent": 100,
+      "contacted": 1409,
+      "customers_saved": 91.6,
+      "cost": 70450,
+      "value_saved": 71618.0,
+      "profit": 1168.0,
+      "roi": 0.017
+    }
+  ],
+  "recommendation": [
+    "With a budget for the top 20% (282 customers), 'Churn risk' ranking gives the highest profit: $37,579 (ROI 266%) vs $28,476 for uplift and $2,383 for random targeting.",
+    "Most profitable overall: 'Churn risk' contacting the top 40% (profit $42,646). Contacting more than that REDUCES profit: extra offers go to customers who would stay anyway or who react badly.",
+    "Uplift ranking avoids 'lost causes' (high-risk customers the offer cannot save), but in this simulation churn risk already captures most of who responds, so it wins on profit.",
+    "Recommendation: target the highest churn-risk customers first, skip customers the uplift model flags as negative (likely to react badly), and run a real A/B test before trusting uplift scores, because the uplift effects here are simulated."
+  ]
+}

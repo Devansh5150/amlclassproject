@@ -139,8 +139,29 @@ Base learner chosen by 5-fold cross-validated Qini on training data: **Logistic 
 
 Charts: `qini_curves.png`, `uplift_gain.png`, `uplift_by_decile.png`, `sim_design.png` in `ml/results/figures/`.
 
-## 7. Business Recommendation
-*(Added in Phase 5.)*
+## 7. Business Recommendation (Phase 5)
+```bash
+python ml/business_roi.py
+```
+**Assumptions** (demo values in `params.yaml`): offer cost **$50** per contacted customer; value of keeping a customer = **MonthlyCharges × 12** (about $780 on average).
+Effects come from the **simulated** offer, so the $ figures are illustrative.
+
+Profit on the 1,409 test customers:
+
+| Contact top | Churn risk | Uplift (T-learner) | Random |
+|---|---|---|---|
+| 10% | $26,186 | $17,187 | $1,623 |
+| **20%** | **$37,579** (ROI 266%) | $28,476 | $2,383 |
+| 30% | $41,091 | $37,010 | $1,844 |
+| **40%** | **$42,646** ← max | $41,369 | $2,967 |
+| 60% | $33,957 | $33,036 | $1,237 |
+| 100% | $1,168 | $1,168 | $1,168 |
+
+**Recommendation**
+1. At a 20% budget, **target by churn risk**: $37.6k profit vs $28.5k for uplift and $2.4k for random.
+2. The most profitable campaign size is **about the top 40%**. Contacting more *reduces* profit, because extra offers go to customers who would stay anyway or who react badly.
+3. Use the uplift model as a **filter**: skip customers with negative predicted uplift (likely "sleeping dogs").
+4. Run a **real A/B test** of the offer before trusting uplift scores, because the effects here are simulated.
 
 ## 8. Screenshots & Demo
 *(Added in Phase 8.)*
