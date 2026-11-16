@@ -14,7 +14,30 @@ Telecom companies lose revenue when customers leave (churn). We:
 > method works. They are not real campaign results.
 
 ## 2. Dataset
-- IBM Telco Customer Churn (public): about 7,000 customers, 21 columns. *(Details added in Phase 2.)*
+- **IBM Telco Customer Churn** (public, [IBM GitHub](https://github.com/IBM/telco-customer-churn-on-icp4d)): 7,043 customers, 21 columns.
+- Each row is one customer: demographics, services, contract/billing details, tenure, and `Churn` (Yes/No).
+- **Churn rate: 26.5%** (imbalanced: about 3 stayers for every churner).
+
+**Get the data** (raw CSV is not committed to git):
+```bash
+python ml/download_data.py   # downloads to data/raw/telco_churn.csv
+python ml/preprocess.py      # cleans it  -> data/processed/telco_clean.csv
+```
+
+**Cleaning** (`ml/preprocess.py`):
+- `TotalCharges` is stored as text, with 11 blanks. All 11 are new customers (tenure = 0), so they are set to 0.
+- "No internet service" / "No phone service" are merged into "No" (the base-service columns already record this).
+- `Churn` is converted from Yes/No to 1/0.
+- Encoding (one-hot) and scaling (StandardScaler) happen inside the model pipeline and are fitted on training data only, to avoid data leakage.
+
+**EDA highlights** (`notebooks/01_eda.ipynb`, charts in `notebooks/figures/`):
+| Finding | Churn rate |
+|---|---|
+| Month-to-month vs two-year contract | 43% vs 3% |
+| Tenure 0–6 months vs 49–72 months | 53% vs 10% |
+| Fiber optic vs DSL internet | 42% vs 19% |
+| Electronic check vs automatic payment | 45% vs 15–17% |
+| No tech support vs has tech support | 31% vs 15% |
 
 ## 3. Tech Stack
 | Layer    | Tools |
