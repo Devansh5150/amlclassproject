@@ -11,11 +11,15 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+// Build "?a=1&b=2", skipping empty values
+const qs = (params) =>
+  "?" + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== "" && v != null)).toString();
+
 export const api = {
   summary: () => request("/summary"),
   metrics: () => request("/metrics"),
-  customers: (sortBy = "uplift_score", limit = 2000) =>
-    request(`/customers?sort_by=${sortBy}&limit=${limit}`),
+  customers: (params = {}) => request(`/customers${qs(params)}`),
+  customer: (id) => request(`/customers/${encodeURIComponent(id)}`),
   predict: (customer) =>
     request("/predict", { method: "POST", body: JSON.stringify(customer) }),
 };

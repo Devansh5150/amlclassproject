@@ -1,15 +1,16 @@
-// Chart colors in ONE place (validated colorblind-safe categorical palette).
-// Each entity always keeps the same color on every chart.
+// Chart colors & design system tokens
 export const COLORS = {
-  blue: "#2a78d6",
-  orange: "#eb6834",
-  aqua: "#1baf7a",
-  neutral: "#8a8984", // "Random" baseline: gray, not a series hue
-  grid: "#e6e5e0",
-  axis: "#52514e",
+  primary: "#4f46e5",   // Indigo
+  blue: "#2563eb",      // Electric Blue
+  orange: "#ea580c",    // Energetic Orange / Amber
+  aqua: "#059669",      // Vibrant Emerald
+  purple: "#7c3aed",    // Violet
+  neutral: "#94a3b8",   // Slate 400
+  grid: "#e2e8f0",      // Light subtle border
+  axis: "#64748b",      // Slate 500
 };
 
-// Plain-English names for the targeting methods (backend name -> what users see)
+// Plain-English names for the targeting methods
 export const METHOD_LABEL = {
   "Churn risk": "Most likely to leave",
   "Churn risk (Random Forest)": "Most likely to leave",
@@ -19,32 +20,88 @@ export const METHOD_LABEL = {
 };
 
 export const METHOD_COLORS = {
-  "Most likely to leave": COLORS.blue,
-  "Most likely to respond to discount": COLORS.orange,
-  "Random picks": COLORS.neutral,
+  "Most likely to leave": "#2563eb",
+  "Most likely to respond to discount": "#ea580c",
+  "Random picks": "#94a3b8",
 };
 
-// Classical models (technical details section only)
+// Classical models
 export const MODEL_COLORS = {
-  "Logistic Regression": COLORS.blue,
-  "Random Forest": COLORS.orange,
-  XGBoost: COLORS.aqua,
+  "Logistic Regression": "#2563eb",
+  "Random Forest": "#ea580c",
+  XGBoost: "#059669",
 };
 
-// Backend action -> plain label + status color + icon (never color alone).
+// Backend action -> plain label + status color + icon + modern pills
 export const ACTION_STYLE = {
-  "Send retention offer": { label: "Send the discount", color: "#0ca30c", icon: "✔" },
-  "No action needed": { label: "No need, likely to stay", color: "#52514e", icon: "–" },
-  "Try non-discount retention": { label: "Call them instead", color: "#c47a00", icon: "☎" },
-  "Do not contact": { label: "Don't contact", color: "#d03b3b", icon: "✖" },
+  "Send retention offer": {
+    label: "Send the discount",
+    color: "#059669",
+    bg: "#ecfdf5",
+    border: "#a7f3d0",
+    icon: "✔",
+    tone: "good"
+  },
+  "No action needed": {
+    label: "No need, likely to stay",
+    color: "#475569",
+    bg: "#f8fafc",
+    border: "#e2e8f0",
+    icon: "–",
+    tone: "neutral"
+  },
+  "Try non-discount retention": {
+    label: "Call them instead",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+    icon: "☎",
+    tone: "warning"
+  },
+  "Do not contact": {
+    label: "Don't contact",
+    color: "#e11d48",
+    bg: "#fff1f2",
+    border: "#fecdd3",
+    icon: "✖",
+    tone: "danger"
+  },
+};
+
+// Risk levels
+export const RISK_STYLE = {
+  High: {
+    label: "High risk",
+    color: "#e11d48",
+    bg: "#fff1f2",
+    border: "#fecdd3",
+    icon: "▲",
+    badgeClass: "badge-danger"
+  },
+  Medium: {
+    label: "Medium risk",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+    icon: "●",
+    badgeClass: "badge-warning"
+  },
+  Low: {
+    label: "Low risk",
+    color: "#059669",
+    bg: "#ecfdf5",
+    border: "#a7f3d0",
+    icon: "▼",
+    badgeClass: "badge-success"
+  },
 };
 
 // Plain explanations of each action
 export const ACTION_HELP = {
-  "Send retention offer": "A $50 discount is likely to keep this customer, and keeping them is worth more than $50.",
-  "No action needed": "This customer will probably stay anyway, so a discount would be wasted.",
-  "Try non-discount retention": "They may leave, but a discount probably won't change their mind. A personal call to fix their problem may work better.",
-  "Do not contact": "Contacting this customer might actually make them more likely to leave.",
+  "Send retention offer": "A $50 discount is likely to keep this customer, and preserving their lifetime value is worth significantly more than $50.",
+  "No action needed": "This customer has high organic loyalty and will likely stay anyway. Offering a discount would needlessly dilute revenue.",
+  "Try non-discount retention": "They are at risk of leaving, but a discount won't solve the core issue. Direct outreach or technical support resolution yields higher retention.",
+  "Do not contact": "Contacting this customer or sending an unsolicited offer may trigger a negative reaction or accelerate churn.",
 };
 
 export const pct = (v, d = 0) => `${(v * 100).toFixed(d)}%`;

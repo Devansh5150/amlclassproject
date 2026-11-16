@@ -25,6 +25,7 @@ def test_health():
     r = client.get("/health")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
+    assert r.json()["customers"] == 7043
 
 
 def test_predict_returns_all_fields():
@@ -56,10 +57,29 @@ def test_customers_sorted_and_paginated():
     assert probs == sorted(probs, reverse=True)
 
 
+def test_customers_filter_and_search():
+    high = client.get("/customers", params={"risk": "High", "limit": 50}).json()
+    assert all(c["risk_level"] == "High" for c in high["items"])
+    first = high["items"][0]
+    found = client.get("/customers", params={"q": first["customerID"]}).json()
+    assert found["total"] == 1
+
+
+def test_customer_detail_and_404():
+    cid = client.get("/customers", params={"limit": 1}).json()["items"][0]["customerID"]
+    r = client.get(f"/customers/{cid}")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["customerID"] == cid and body["name"]
+    assert 0 <= body["chance_of_staying"] <= 1
+    assert isinstance(body["reasons_leave"], list)
+    assert client.get("/customers/NOT-A-REAL-ID").status_code == 404
+
+
 def test_metrics_and_summary():
     m = client.get("/metrics").json()
-    assert {"classical", "uplift", "roi"} <= m.keys()
+    assert {"classical", "uplift", "roi", "robic_roi"} <= m.keys()
     assert m["uplift"]["simulated"] is True
     s = client.get("/summary").json()
-    assert 0.2 < s["churn_rate"] < 0.35
-    assert len(s["top_drivers"]) > 0
+    assert 0.65 < s["retention_rate"] < 0.8
+    assert sum(s["risk_counts"].values()) == s["n_customers"]
