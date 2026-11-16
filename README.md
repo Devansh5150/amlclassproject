@@ -95,6 +95,50 @@ actually churn (precision 54%). That trade-off is fine when a retention offer is
 no two-year contract, electronic-check payment, and high monthly charges all push predictions towards churn.
 These match the EDA findings. Charts are in `ml/results/figures/`.
 
+### 6.2 Uplift extension (Phase 4): ⚠️ SIMULATED treatment
+```bash
+python ml/simulate_treatment.py   # prints the simulated design
+python ml/plot_simulation.py      # chart: ml/results/figures/sim_design.png
+python ml/train_uplift.py         # trains T-learner + compares rankings
+```
+
+**The data has no real offer column, so we SIMULATE one** (`ml/simulate_treatment.py`, all numbers are assumptions):
+- A random 50% of customers "receive a retention offer" (like an A/B test, seed 2024).
+- Customers without the offer keep their **real** churn outcome. For customers with the offer, real churners are "saved" at an assumed rate per segment:
+
+| Segment (assumed) | Rule | Assumed effect of offer |
+|---|---|---|
+| Persuadable | Month-to-month, tenure ≤ 12 | saves 40% of churners |
+| Other month-to-month | Month-to-month | saves 20% |
+| Lost cause | Fiber + electronic check + bill > $90 | saves 5% |
+| Contract | Other 1/2-year contract | saves 5% |
+| Sleeping dog | Two-year, tenure > 48 | **backfires**: 3% of stayers churn |
+
+Overall simulated effect: churn 26.0% without the offer vs 20.5% with it.
+
+**T-learner:** one model on customers who got the offer, one on customers who didn't. Uplift = P(stay | offer) − P(stay | no offer).
+Base learner chosen by 5-fold cross-validated Qini on training data: **Logistic Regression** (0.049 vs 0.041 for XGBoost).
+
+**If we can only contact the top 20% (282 test customers), which ranking saves more customers?**
+
+| Ranking | Qini AUC | Observed uplift in top 20% | Expected customers saved (true, simulated) | Lost causes contacted |
+|---|---|---|---|---|
+| **Churn risk (Random Forest)** | **0.040** | 12.6 pts | **59.1** | 56 |
+| T-learner (Logistic Regression) ✅ chosen | 0.028 | 10.9 pts | 50.9 | 17 |
+| T-learner (XGBoost) | 0.030 | 13.2 pts | 56.0 | 21 |
+| Random | 0.002 | 5.0 pts | 19.8 | 27 |
+| *Best possible (oracle)* | | | *94.9* | |
+
+**Honest result: in this simulation, churn-risk ranking wins at the 20% budget.**
+- **Why:** in our design the offer only helps customers who would actually churn. So the true benefit ≈ churn risk × response rate, and churn risk carries most of that signal.
+  The T-learner has to estimate a *difference* of two noisy models from about 2,800 customers per group, which is much harder than predicting churn.
+- **What uplift does well:** it avoids lost causes (17 contacted vs 56 for churn ranking), which is exactly what it is designed to do.
+- **When uplift would win:** when the people who respond are *different* from the people at risk (for example, risky customers who ignore offers), or with much more experiment data.
+- **Both curves peak at about 60–65% contacted, then fall.** Contacting *everyone* saves fewer customers than contacting the right 60%, because of the sleeping dogs.
+- The same conclusion holds in 5-fold CV on the training data (churn risk 43.7 vs uplift 38–40 saved per fold), and "risk filtered by uplift" hybrids did not beat plain risk ranking.
+
+Charts: `qini_curves.png`, `uplift_gain.png`, `uplift_by_decile.png`, `sim_design.png` in `ml/results/figures/`.
+
 ## 7. Business Recommendation
 *(Added in Phase 5.)*
 
