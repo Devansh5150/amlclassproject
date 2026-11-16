@@ -9,28 +9,42 @@ export const COLORS = {
   axis: "#52514e",
 };
 
-// Targeting methods
-export const METHOD_COLORS = {
-  "Churn risk": COLORS.blue,
-  "Churn risk (Random Forest)": COLORS.blue,
-  "Uplift (T-learner)": COLORS.orange,
-  "T-learner (Logistic Regression)": COLORS.orange,
-  Random: COLORS.neutral,
+// Plain-English names for the targeting methods (backend name -> what users see)
+export const METHOD_LABEL = {
+  "Churn risk": "Most likely to leave",
+  "Churn risk (Random Forest)": "Most likely to leave",
+  "Uplift (T-learner)": "Most likely to respond to discount",
+  "T-learner (Logistic Regression)": "Most likely to respond to discount",
+  Random: "Random picks",
 };
 
-// Classical models
+export const METHOD_COLORS = {
+  "Most likely to leave": COLORS.blue,
+  "Most likely to respond to discount": COLORS.orange,
+  "Random picks": COLORS.neutral,
+};
+
+// Classical models (technical details section only)
 export const MODEL_COLORS = {
   "Logistic Regression": COLORS.blue,
   "Random Forest": COLORS.orange,
   XGBoost: COLORS.aqua,
 };
 
-// Status colors for recommended actions: always shown WITH an icon + text label.
+// Backend action -> plain label + status color + icon (never color alone).
 export const ACTION_STYLE = {
-  "Send retention offer": { color: "#0ca30c", icon: "✔" },
-  "No action needed": { color: "#52514e", icon: "–" },
-  "Try non-discount retention": { color: "#c47a00", icon: "!" },
-  "Do not contact": { color: "#d03b3b", icon: "✖" },
+  "Send retention offer": { label: "Send the discount", color: "#0ca30c", icon: "✔" },
+  "No action needed": { label: "No need, likely to stay", color: "#52514e", icon: "–" },
+  "Try non-discount retention": { label: "Call them instead", color: "#c47a00", icon: "☎" },
+  "Do not contact": { label: "Don't contact", color: "#d03b3b", icon: "✖" },
+};
+
+// Plain explanations of each action
+export const ACTION_HELP = {
+  "Send retention offer": "A $50 discount is likely to keep this customer, and keeping them is worth more than $50.",
+  "No action needed": "This customer will probably stay anyway, so a discount would be wasted.",
+  "Try non-discount retention": "They may leave, but a discount probably won't change their mind. A personal call to fix their problem may work better.",
+  "Do not contact": "Contacting this customer might actually make them more likely to leave.",
 };
 
 export const pct = (v, d = 0) => `${(v * 100).toFixed(d)}%`;

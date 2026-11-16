@@ -149,12 +149,14 @@ Then open **http://127.0.0.1:5173**
 
 ## 7. The website: what each page is for
 
+Every page has a blue 💡 box with its one key message. Technical charts are hidden under **"Technical details"** at the bottom (open them in the viva if asked).
+
 | Page | One-line purpose | What to point at in the demo |
 |---|---|---|
-| **Dashboard** | *Why* do customers leave? | Red bars = reasons people leave; month-to-month is #1 |
-| **Predict a customer** | Try one customer | Click "Risky new customer" → 85%, send offer. Click "Loyal" → low risk, no action |
-| **Model comparison** | Which method is better? | Blue line (churn risk) is above orange (uplift) at the 20% mark |
-| **Campaign targeting** | Who exactly do we call? | Move the slider; the profit chart peaks around 40% |
+| **1. Why customers leave** | What makes people leave? | ⚠ Warning signs vs ✔ good signs; month-to-month is #1 |
+| **2. Check a customer** | Try one customer | Click "🆕 New customer" → *Very likely to leave · Send the discount*. Click "🏠 Loyal customer" → *Likely to stay* |
+| **3. Best way to choose** | Which way of picking customers works best? | Bar chart: "Most likely to leave" keeps 59 customers, beating the other two |
+| **4. Plan a campaign** | Who exactly do we call, and is it worth it? | Move the slider; profit peaks at about 40%; the call list shows who to phone |
 
 ---
 

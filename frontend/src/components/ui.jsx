@@ -17,9 +17,8 @@ export function Loading({ error }) {
   if (error)
     return (
       <div className="card error">
-        Could not reach the backend: {error}
-        <br />
-        Is it running? <code>uvicorn backend.app.main:app --reload</code>
+        The app can't reach its data right now. Make sure the backend window is open
+        (double-click <code>start.bat</code>), then refresh this page.
       </div>
     );
   return <div className="card muted">Loading…</div>;
@@ -45,21 +44,46 @@ export function Card({ title, subtitle, children }) {
   );
 }
 
-export function ActionBadge({ action }) {
-  const s = ACTION_STYLE[action] || { color: "#52514e", icon: "•" };
+// Page header: big title + one plain sentence
+export function PageHeader({ title, children }) {
   return (
-    <span className="badge" style={{ borderColor: s.color }}>
-      <span style={{ color: s.color }}>{s.icon}</span> {action}
+    <div className="page-header">
+      <h1>{title}</h1>
+      <p className="lead">{children}</p>
+    </div>
+  );
+}
+
+// The one key message of a page, in a highlighted box
+export function KeyMessage({ children }) {
+  return <div className="key-message">💡 {children}</div>;
+}
+
+export function ActionBadge({ action, large }) {
+  const s = ACTION_STYLE[action] || { label: action, color: "#52514e", icon: "•" };
+  return (
+    <span className={`badge ${large ? "large" : ""}`} style={{ borderColor: s.color }}>
+      <span style={{ color: s.color }}>{s.icon}</span> {s.label}
     </span>
   );
 }
 
-export function SimulatedBanner() {
+export function SimulatedNote() {
   return (
-    <div className="banner">
-      ⚠ <b>Simulated:</b> the dataset has no real retention offer, so the offer and its effect are
-      simulated with documented assumptions. Uplift numbers show the method, not real campaign results.
-    </div>
+    <p className="sim-note">
+      ⓘ Our data doesn't record who got discounts in the past, so the discount's effect is an
+      <b> estimate based on a simulated test</b>. Treat these numbers as an example, not a promise.
+    </p>
+  );
+}
+
+// Collapsed-by-default box for technical content (for the viva / curious readers)
+export function Details({ title = "Technical details", children }) {
+  return (
+    <details className="details">
+      <summary>{title}</summary>
+      <div className="details-body">{children}</div>
+    </details>
   );
 }
 
@@ -67,9 +91,9 @@ export function SimulatedBanner() {
 export function Legend({ items }) {
   return (
     <div className="legend">
-      {items.map(([label, color, dashed]) => (
+      {items.map(([label, color]) => (
         <span key={label}>
-          <i style={{ background: dashed ? "transparent" : color, borderTop: dashed ? `2px dashed ${color}` : "none" }} />
+          <i style={{ background: color }} />
           {label}
         </span>
       ))}
