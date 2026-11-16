@@ -55,7 +55,7 @@ def summary():
 @app.get("/customers")
 def customers(
     sort_by: Literal["uplift_score", "churn_prob", "expected_offer_profit"] = "uplift_score",
-    limit: int = Query(50, ge=1, le=500),
+    limit: int = Query(50, ge=1, le=2000),
     offset: int = Query(0, ge=0),
 ):
     """Demo customers (held-out test set), highest score first."""
