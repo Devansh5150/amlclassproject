@@ -1,5 +1,7 @@
 # Customer Churn Prediction with Simple Uplift Extension
 
+> 👋 **New here or confused? Read [docs/START_HERE.md](docs/START_HERE.md) first.** It explains everything in plain English. To run the app, double-click `start.bat`.
+
 **Group 11 · Track 3 Project Showcase · Topic A**
 
 ## 1. Problem
