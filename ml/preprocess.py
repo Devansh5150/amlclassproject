@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -89,6 +90,21 @@ def build_preprocessor() -> ColumnTransformer:
 def load_clean() -> pd.DataFrame:
     """Load the cleaned CSV (create it first with `python ml/preprocess.py`)."""
     return pd.read_csv(CLEAN_PATH)
+
+
+RANDOM_STATE = 42   # fixed seed -> same split / same results every run
+TEST_SIZE = 0.20    # 80% train, 20% test
+
+
+def split_data(df: pd.DataFrame):
+    """
+    80/20 train/test split, STRATIFIED on Churn so both parts keep the
+    same churn rate (about 26.5%). Every phase uses this function, so all
+    models are evaluated on exactly the same test customers.
+    """
+    return train_test_split(
+        df, test_size=TEST_SIZE, stratify=df[TARGET], random_state=RANDOM_STATE
+    )
 
 
 def main() -> None:

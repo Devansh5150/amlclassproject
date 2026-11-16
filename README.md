@@ -69,7 +69,31 @@ pip install -r requirements.txt
 *(Run instructions for the backend and frontend will be added in later phases.)*
 
 ## 6. Results
-*(Added in Phases 3–5.)*
+
+### 6.1 Classical churn models (Phase 3)
+```bash
+python ml/train_classical.py
+```
+- 80/20 stratified train/test split (seed 42). Test set: 1,409 customers.
+- Encoding and scaling happen inside each scikit-learn Pipeline (fitted on training data only).
+- Imbalance is handled with class weights (`class_weight="balanced"`, `scale_pos_weight` for XGBoost).
+
+| Model | ROC-AUC (test) | Precision | Recall | F1 | 5-fold CV ROC-AUC |
+|---|---|---|---|---|---|
+| Logistic Regression | 0.842 | 0.505 | 0.786 | 0.615 | 0.846 ± 0.012 |
+| **Random Forest** ✅ | **0.846** | **0.537** | **0.794** | **0.641** | 0.848 ± 0.011 |
+| XGBoost | 0.842 | 0.522 | 0.775 | 0.624 | 0.845 ± 0.011 |
+
+*(Precision, recall and F1 use a 0.5 probability cut-off.)*
+
+**Reading the table:** all three models are close. The gaps (≤0.004 AUC) are smaller than the cross-validation spread (±0.011),
+so no model is clearly better. Random Forest is saved as the best model (`ml/models/best_churn_model.joblib`)
+because it has the highest test ROC-AUC and F1. It catches **79% of churners** (recall). About **half** of the customers it flags
+actually churn (precision 54%). That trade-off is fine when a retention offer is cheap compared with losing a customer.
+
+**Top churn drivers (SHAP, Random Forest):** month-to-month contract, fiber-optic internet, short tenure,
+no two-year contract, electronic-check payment, and high monthly charges all push predictions towards churn.
+These match the EDA findings. Charts are in `ml/results/figures/`.
 
 ## 7. Business Recommendation
 *(Added in Phase 5.)*
