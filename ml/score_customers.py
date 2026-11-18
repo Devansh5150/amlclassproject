@@ -5,7 +5,7 @@ Robic's customers = all 7,043 real (anonymous) records from the IBM Telco datase
 with generated FAKE names / regions so the demo feels like a real customer system.
 
 For every customer we add:
-  churn_prob     chance of leaving    (Random Forest)
+  churn_prob     chance of leaving    (Random Forest, calibrated)
   uplift_score   how much a discount raises their chance of staying (T-learner, SIMULATED offer data)
   reasons_leave / reasons_stay   top 3 reasons in plain English (from SHAP)
 
@@ -26,6 +26,7 @@ import pandas as pd
 import shap
 import joblib
 import yaml
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
@@ -112,6 +113,7 @@ def main() -> None:
     rf = Pipeline([("preprocess", build_preprocessor()),
                    ("model", RandomForestClassifier(n_estimators=300, max_depth=8, min_samples_leaf=5,
                                                     class_weight="balanced", n_jobs=-1, random_state=RANDOM_STATE))])
+    rf = CalibratedClassifierCV(rf, method="sigmoid", cv=5)  # same calibration as train_classical.py
     churn_prob = np.zeros(len(sim))
     uplift = np.zeros(len(sim))
     folds = StratifiedKFold(5, shuffle=True, random_state=RANDOM_STATE)
@@ -124,7 +126,8 @@ def main() -> None:
     sim["churn_prob"], sim["uplift_score"] = churn_prob, uplift
 
     # ---- 2. Plain-English reasons per customer (SHAP on the saved churn model) ----
-    model = joblib.load(PROJECT_ROOT / "ml" / "models" / "best_churn_model.joblib")
+    # SHAP needs the plain tree model; calibration rescales scores but doesn't change which features matter
+    model = joblib.load(PROJECT_ROOT / "ml" / "models" / "churn_model_uncalibrated.joblib")
     pre, clf = model.named_steps["preprocess"], model.named_steps["model"]
     print("  computing SHAP reasons (about a minute)...")
     sv = shap.TreeExplainer(clf)(pre.transform(X)).values

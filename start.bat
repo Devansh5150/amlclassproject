@@ -13,5 +13,5 @@ echo Starting frontend (React) on http://127.0.0.1:5173 ...
 start "Frontend - React" cmd /k "cd frontend && npm run dev"
 
 REM Give both servers a few seconds to start, then open the website
-timeout /t 6 /nobreak >nul
+ping 127.0.0.1 -n 7 >nul
 start "" http://127.0.0.1:5173

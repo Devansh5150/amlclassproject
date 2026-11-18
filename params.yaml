@@ -10,3 +10,5 @@ business:
 
 decision:                   # rules used by POST /predict to recommend an action
   low_risk_threshold: 0.30  # churn probability below this -> "no action needed"
+  backfire_margin: 0.02     # predicted uplift below MINUS this -> "do not contact".
+                            # Uplift within +/-0.02 of zero is model noise, not a real backfire.

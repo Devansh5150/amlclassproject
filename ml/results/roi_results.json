@@ -12,51 +12,51 @@
       "method": "Churn risk",
       "percent": 10,
       "contacted": 141,
-      "customers_saved": 35.8,
+      "customers_saved": 34.7,
       "cost": 7050,
-      "value_saved": 33236.0,
-      "profit": 26186.0,
-      "roi": 3.714
+      "value_saved": 32536.0,
+      "profit": 25486.0,
+      "roi": 3.615
     },
     {
       "method": "Churn risk",
       "percent": 20,
       "contacted": 282,
-      "customers_saved": 59.1,
+      "customers_saved": 58.2,
       "cost": 14100,
-      "value_saved": 51679.0,
-      "profit": 37579.0,
-      "roi": 2.665
+      "value_saved": 51364.0,
+      "profit": 37264.0,
+      "roi": 2.643
     },
     {
       "method": "Churn risk",
       "percent": 30,
       "contacted": 423,
-      "customers_saved": 73.2,
+      "customers_saved": 72.7,
       "cost": 21150,
-      "value_saved": 62241.0,
-      "profit": 41091.0,
-      "roi": 1.943
+      "value_saved": 61855.0,
+      "profit": 40705.0,
+      "roi": 1.925
     },
     {
       "method": "Churn risk",
       "percent": 40,
       "contacted": 564,
-      "customers_saved": 87.4,
+      "customers_saved": 87.2,
       "cost": 28200,
-      "value_saved": 70846.0,
-      "profit": 42646.0,
-      "roi": 1.512
+      "value_saved": 70659.0,
+      "profit": 42459.0,
+      "roi": 1.506
     },
     {
       "method": "Churn risk",
       "percent": 50,
       "contacted": 704,
-      "customers_saved": 92.6,
+      "customers_saved": 92.7,
       "cost": 35200,
-      "value_saved": 74404.0,
-      "profit": 39204.0,
-      "roi": 1.114
+      "value_saved": 74483.0,
+      "profit": 39283.0,
+      "roi": 1.116
     },
     {
       "method": "Churn risk",
@@ -72,31 +72,31 @@
       "method": "Churn risk",
       "percent": 70,
       "contacted": 986,
-      "customers_saved": 97.6,
+      "customers_saved": 97.7,
       "cost": 49300,
-      "value_saved": 75838.0,
-      "profit": 26538.0,
-      "roi": 0.538
+      "value_saved": 75919.0,
+      "profit": 26619.0,
+      "roi": 0.54
     },
     {
       "method": "Churn risk",
       "percent": 80,
       "contacted": 1127,
-      "customers_saved": 96.6,
+      "customers_saved": 96.8,
       "cost": 56350,
-      "value_saved": 74692.0,
-      "profit": 18342.0,
-      "roi": 0.325
+      "value_saved": 74791.0,
+      "profit": 18441.0,
+      "roi": 0.327
     },
     {
       "method": "Churn risk",
       "percent": 90,
       "contacted": 1268,
-      "customers_saved": 94.3,
+      "customers_saved": 94.4,
       "cost": 63400,
-      "value_saved": 72804.0,
-      "profit": 9404.0,
-      "roi": 0.148
+      "value_saved": 72835.0,
+      "profit": 9435.0,
+      "roi": 0.149
     },
     {
       "method": "Churn risk",
@@ -310,8 +310,8 @@
     }
   ],
   "recommendation": [
-    "With a budget for the top 20% (282 customers), 'Churn risk' ranking gives the highest profit: $37,579 (ROI 266%) vs $28,476 for uplift and $2,383 for random targeting.",
-    "Most profitable overall: 'Churn risk' contacting the top 40% (profit $42,646). Contacting more than that REDUCES profit: extra offers go to customers who would stay anyway or who react badly.",
+    "With a budget for the top 20% (282 customers), 'Churn risk' ranking gives the highest profit: $37,264 (ROI 264%) vs $28,476 for uplift and $2,383 for random targeting.",
+    "Most profitable overall: 'Churn risk' contacting the top 40% (profit $42,459). Contacting more than that REDUCES profit: extra offers go to customers who would stay anyway or who react badly.",
     "Uplift ranking avoids 'lost causes' (high-risk customers the offer cannot save), but in this simulation churn risk already captures most of who responds, so it wins on profit.",
     "Recommendation: target the highest churn-risk customers first, skip customers the uplift model flags as negative (likely to react badly), and run a real A/B test before trusting uplift scores, because the uplift effects here are simulated."
   ]

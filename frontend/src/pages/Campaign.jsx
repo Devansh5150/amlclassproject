@@ -114,7 +114,7 @@ export default function Campaign() {
             }}
           />
           <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-            {[10, 20, 30, 50].map((preset) => (
+            {[10, 20, 30, 40, 50].map((preset) => (
               <button
                 key={preset}
                 type="button"
@@ -125,7 +125,7 @@ export default function Campaign() {
                   setPage(0);
                 }}
               >
-                {preset}% {preset === 20 ? "(Optimal)" : ""}
+                {preset}% {preset === 40 ? "(peak profit)" : ""}
               </button>
             ))}
           </div>
@@ -203,14 +203,14 @@ export default function Campaign() {
             <ReferenceLine y={0} stroke="#94a3b8" />
             <ReferenceLine
               x={nearest}
-              stroke="#6366f1"
+              stroke="#EF5A5F"
               strokeDasharray="4 4"
               strokeWidth={2}
               label={{
                 value: "Active Plan",
                 fontSize: 12,
                 fontWeight: 700,
-                fill: "#4f46e5",
+                fill: "#E5484D",
                 position: "insideTopRight",
               }}
             />

@@ -32,13 +32,13 @@
       }
     },
     "Churn risk (Random Forest)": {
-      "qini_auc": 0.0395,
-      "observed_uplift_at_20": 0.1255,
-      "true_saved_top20": 59.1,
+      "qini_auc": 0.04,
+      "observed_uplift_at_20": 0.1271,
+      "true_saved_top20": 58.2,
       "segments_top20": {
-        "persuadable": 189,
+        "persuadable": 188,
         "lost_cause": 56,
-        "m2m_other": 37
+        "m2m_other": 38
       }
     },
     "Random": {
@@ -148,47 +148,47 @@
       },
       {
         "pct": 5.0,
-        "qini": 4.47
+        "qini": 5.47
       },
       {
         "pct": 10.0,
-        "qini": 10.19
+        "qini": 6.95
       },
       {
         "pct": 15.0,
-        "qini": 13.86
+        "qini": 17.17
       },
       {
-        "pct": 20.1,
-        "qini": 19.67
+        "pct": 20.0,
+        "qini": 20.5
       },
       {
-        "pct": 25.1,
-        "qini": 17.32
+        "pct": 25.0,
+        "qini": 18.9
       },
       {
         "pct": 30.0,
-        "qini": 17.14
+        "qini": 14.84
       },
       {
         "pct": 35.1,
-        "qini": 21.73
+        "qini": 21.07
       },
       {
-        "pct": 40.1,
-        "qini": 23.55
+        "pct": 40.0,
+        "qini": 24.04
       },
       {
         "pct": 45.1,
-        "qini": 29.34
+        "qini": 31.34
       },
       {
-        "pct": 50.1,
-        "qini": 37.01
+        "pct": 50.0,
+        "qini": 37.58
       },
       {
-        "pct": 55.1,
-        "qini": 49.23
+        "pct": 55.0,
+        "qini": 48.96
       },
       {
         "pct": 60.0,
@@ -196,31 +196,31 @@
       },
       {
         "pct": 65.0,
-        "qini": 46.58
+        "qini": 45.86
       },
       {
         "pct": 70.0,
-        "qini": 43.4
+        "qini": 45.7
       },
       {
         "pct": 75.0,
-        "qini": 44.81
+        "qini": 45.18
       },
       {
         "pct": 80.0,
-        "qini": 38.12
+        "qini": 37.81
       },
       {
         "pct": 85.0,
-        "qini": 37.24
+        "qini": 34.91
       },
       {
         "pct": 90.0,
-        "qini": 33.87
+        "qini": 34.48
       },
       {
         "pct": 95.0,
-        "qini": 31.6
+        "qini": 31.03
       },
       {
         "pct": 100.0,
@@ -408,47 +408,47 @@
       },
       {
         "pct": 5,
-        "saved": 19.7
+        "saved": 19.6
       },
       {
         "pct": 10,
-        "saved": 35.8
+        "saved": 34.7
       },
       {
         "pct": 15,
-        "saved": 48.9
+        "saved": 48.8
       },
       {
         "pct": 20,
-        "saved": 59.1
+        "saved": 58.2
       },
       {
         "pct": 25,
-        "saved": 66.8
+        "saved": 67.3
       },
       {
         "pct": 30,
-        "saved": 73.2
+        "saved": 72.7
       },
       {
         "pct": 35,
-        "saved": 79.8
+        "saved": 80.0
       },
       {
         "pct": 40,
-        "saved": 87.4
+        "saved": 87.2
       },
       {
         "pct": 45,
-        "saved": 90.3
+        "saved": 90.2
       },
       {
         "pct": 50,
-        "saved": 92.6
+        "saved": 92.7
       },
       {
         "pct": 55,
-        "saved": 94.7
+        "saved": 95.5
       },
       {
         "pct": 60,
@@ -456,31 +456,31 @@
       },
       {
         "pct": 65,
-        "saved": 97.5
+        "saved": 97.7
       },
       {
         "pct": 70,
-        "saved": 97.6
+        "saved": 97.7
       },
       {
         "pct": 75,
-        "saved": 97.3
+        "saved": 97.4
       },
       {
         "pct": 80,
-        "saved": 96.6
+        "saved": 96.8
       },
       {
         "pct": 85,
-        "saved": 95.4
+        "saved": 95.5
       },
       {
         "pct": 90,
-        "saved": 94.3
+        "saved": 94.4
       },
       {
         "pct": 95,
-        "saved": 93.2
+        "saved": 93.3
       },
       {
         "pct": 100,

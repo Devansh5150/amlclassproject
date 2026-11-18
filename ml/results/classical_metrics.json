@@ -646,5 +646,105 @@
         "tpr": 1.0
       }
     ]
+  },
+  "calibration": {
+    "method": "sigmoid",
+    "actual_churn_rate": 0.2654,
+    "before": {
+      "mean_predicted": 0.3937,
+      "brier": 0.158,
+      "roc_auc": 0.8455
+    },
+    "after": {
+      "mean_predicted": 0.2672,
+      "brier": 0.1363,
+      "roc_auc": 0.8459
+    },
+    "curve": {
+      "Before (class-weighted)": [
+        {
+          "predicted": 0.0179,
+          "actual": 0.0071
+        },
+        {
+          "predicted": 0.0461,
+          "actual": 0.0213
+        },
+        {
+          "predicted": 0.1112,
+          "actual": 0.0567
+        },
+        {
+          "predicted": 0.2026,
+          "actual": 0.0709
+        },
+        {
+          "predicted": 0.296,
+          "actual": 0.1844
+        },
+        {
+          "predicted": 0.4128,
+          "actual": 0.1857
+        },
+        {
+          "predicted": 0.5551,
+          "actual": 0.383
+        },
+        {
+          "predicted": 0.6699,
+          "actual": 0.3901
+        },
+        {
+          "predicted": 0.7623,
+          "actual": 0.6099
+        },
+        {
+          "predicted": 0.8632,
+          "actual": 0.7447
+        }
+      ],
+      "After calibration": [
+        {
+          "predicted": 0.0311,
+          "actual": 0.0071
+        },
+        {
+          "predicted": 0.0362,
+          "actual": 0.0142
+        },
+        {
+          "predicted": 0.0504,
+          "actual": 0.0567
+        },
+        {
+          "predicted": 0.0766,
+          "actual": 0.078
+        },
+        {
+          "predicted": 0.1209,
+          "actual": 0.1702
+        },
+        {
+          "predicted": 0.1989,
+          "actual": 0.2071
+        },
+        {
+          "predicted": 0.3405,
+          "actual": 0.383
+        },
+        {
+          "predicted": 0.4832,
+          "actual": 0.383
+        },
+        {
+          "predicted": 0.6067,
+          "actual": 0.6241
+        },
+        {
+          "predicted": 0.7266,
+          "actual": 0.7305
+        }
+      ]
+    }
   }
 }

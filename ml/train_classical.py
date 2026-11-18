@@ -14,8 +14,16 @@ Class imbalance (26.5% churners) is handled with class weights: mistakes
 on churners count about 3x more during training, so the models don't just
 predict "no churn" for everyone.
 
+Calibration: class weights make the raw probabilities too HIGH (the model
+predicted 39% churn on average when the real rate is 26.5%). Ranking is still
+good, but the app shows these numbers as "chance of staying", so the chosen
+model is wrapped in CalibratedClassifierCV (sigmoid / Platt scaling, 5-fold).
+That keeps the ranking (ROC-AUC unchanged) and makes the probabilities honest.
+
 Outputs:
-  ml/models/best_churn_model.joblib     best pipeline (by test ROC-AUC)
+  ml/models/best_churn_model.joblib     best pipeline, CALIBRATED (used for all predictions)
+  ml/models/churn_model_uncalibrated.joblib  same model before calibration (used for SHAP)
+  ml/results/figures/calibration_curve.png   predicted vs actual churn, before/after
   ml/results/classical_metrics.json     metrics for all models (used by the API)
   ml/results/shap_importance.json       top churn drivers (used by the dashboard)
   ml/results/figures/*.png              ROC curves, confusion matrix, SHAP plots
@@ -32,9 +40,11 @@ matplotlib.use("Agg")  # save charts to files, no pop-up windows
 import matplotlib.pyplot as plt
 import numpy as np
 import shap
+from sklearn.base import clone
+from sklearn.calibration import CalibratedClassifierCV, calibration_curve
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (ConfusionMatrixDisplay, confusion_matrix, f1_score,
+from sklearn.metrics import (ConfusionMatrixDisplay, brier_score_loss, confusion_matrix, f1_score,
                              precision_score, recall_score, roc_auc_score, roc_curve)
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.pipeline import Pipeline
@@ -47,6 +57,7 @@ MODEL_DIR = PROJECT_ROOT / "ml" / "models"
 RESULTS_DIR = PROJECT_ROOT / "ml" / "results"
 FIG_DIR = RESULTS_DIR / "figures"
 THRESHOLD = 0.5  # probability above this -> predict "churn"
+CALIBRATION = "sigmoid"  # Platt scaling: keeps the ranking, fixes the probability scale
 
 
 def make_models(pos_weight: float) -> dict:
@@ -177,7 +188,36 @@ def main() -> None:
     best_name = max(results, key=lambda n: results[n]["roc_auc"])
     best_pipe = pipelines[best_name]
     print(f"\nBest model (highest test ROC-AUC): {best_name}")
-    joblib.dump(best_pipe, MODEL_DIR / "best_churn_model.joblib")
+
+    # ---- 3b. Calibrate the chosen model's probabilities ----
+    # 5-fold on TRAIN: each fold fits the model on 4/5 and learns the probability
+    # correction on the held-out 1/5. The test set stays untouched.
+    calibrated = CalibratedClassifierCV(clone(best_pipe), method=CALIBRATION, cv=5)
+    calibrated.fit(X_train, y_train)
+    raw_prob, cal_prob = probs[best_name], calibrated.predict_proba(X_test)[:, 1]
+    summary = lambda p: {"mean_predicted": round(float(p.mean()), 4),
+                         "brier": round(float(brier_score_loss(y_test, p)), 4),
+                         "roc_auc": round(float(roc_auc_score(y_test, p)), 4)}
+    calibration = {"method": CALIBRATION, "actual_churn_rate": round(float(y_test.mean()), 4),
+                   "before": summary(raw_prob), "after": summary(cal_prob), "curve": {}}
+
+    plt.figure(figsize=(6, 5))
+    plt.plot([0, 1], [0, 1], "k--", label="Perfectly calibrated")
+    for label, p in [("Before (class-weighted)", raw_prob), ("After calibration", cal_prob)]:
+        frac, mean_pred = calibration_curve(y_test, p, n_bins=10, strategy="quantile")
+        plt.plot(mean_pred, frac, "o-", label=label)
+        calibration["curve"][label] = [{"predicted": round(float(a), 4), "actual": round(float(b), 4)}
+                                       for a, b in zip(mean_pred, frac)]
+    plt.xlabel("Predicted churn probability"); plt.ylabel("Actual churn rate")
+    plt.title(f"Calibration: {best_name} (test set)"); plt.legend(loc="upper left")
+    plt.tight_layout(); plt.savefig(FIG_DIR / "calibration_curve.png", dpi=120); plt.close()
+    b, a = calibration["before"], calibration["after"]
+    print(f"Calibration ({CALIBRATION}): mean predicted churn {b['mean_predicted']:.1%} -> "
+          f"{a['mean_predicted']:.1%} (actual {calibration['actual_churn_rate']:.1%}), "
+          f"Brier {b['brier']:.4f} -> {a['brier']:.4f}, ROC-AUC {b['roc_auc']:.4f} -> {a['roc_auc']:.4f}")
+
+    joblib.dump(calibrated, MODEL_DIR / "best_churn_model.joblib")         # used for predictions
+    joblib.dump(best_pipe, MODEL_DIR / "churn_model_uncalibrated.joblib")  # used for SHAP explanations
 
     # ---- 4. Charts: ROC curves + confusion matrix ----
     roc_points = {}
@@ -214,6 +254,7 @@ def main() -> None:
             "models": results,
             "confusion_matrix_best": cm.tolist(),
             "roc_curves": roc_points,
+            "calibration": calibration,
         }, f, indent=2)
     with open(RESULTS_DIR / "shap_importance.json", "w") as f:
         json.dump({"model": best_name, "top_features": importance}, f, indent=2)

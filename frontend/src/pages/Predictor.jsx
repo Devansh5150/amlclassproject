@@ -14,7 +14,7 @@ import {
   AlertTriangleIcon,
   DollarSignIcon
 } from "../components/icons.jsx";
-import { ACTION_HELP, money, pct } from "../theme.js";
+import { ACTION_HELP, ACTION_STYLE, money, pct } from "../theme.js";
 
 const YN = [
   ["No", "No"],
@@ -147,15 +147,38 @@ export default function Predictor() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
+  const [history, setHistory] = useState([]);
+  const [saved, setSaved] = useState(false);
+
+  const normalize = (values) => ({
+    ...values,
+    tenure: Number(values.tenure),
+    MonthlyCharges: Number(values.MonthlyCharges),
+    SeniorCitizen: Number(values.SeniorCitizen),
+  });
+
+  const loadHistory = () => api.predictionHistory().then((h) => setHistory(h.slice(0, 6))).catch(() => {});
+  useEffect(() => { loadHistory(); }, []);
+
+  // Store the current customer in the database (POST /predict?save=true)
+  async function saveCurrent() {
+    await api.predict(normalize(form), { save: true });
+    setSaved(true);
+    loadHistory();
+  }
+
+  function loadFromHistory(input) {
+    const next = { ...form, ...Object.fromEntries(Object.entries(input).filter(([k]) => k in form)) };
+    setActivePreset(null);
+    setForm(next);
+    run(next);
+  }
+
   async function run(values) {
     setError(null);
+    setSaved(false);
     try {
-      const res = await api.predict({
-        ...values,
-        tenure: Number(values.tenure),
-        MonthlyCharges: Number(values.MonthlyCharges),
-        SeniorCitizen: Number(values.SeniorCitizen),
-      });
+      const res = await api.predict(normalize(values));
       setResult(res);
     } catch {
       setError("Unable to score profile. Verify that the FastAPI backend is running.");
@@ -209,6 +232,7 @@ export default function Predictor() {
       </PageHeader>
 
       <div className="grid2 predictor">
+        <div className="predictor-left">
         <Card title="Account Profile & Plan Attributes">
           <div className="presets-bar">
             <span className="presets-label">Preset Profiles:</span>
@@ -237,7 +261,36 @@ export default function Predictor() {
           <Details title="Secondary Account & Demographic Attributes (Optional)">
             <div className="form-grid">{EXTRA_FIELDS.map(field)}</div>
           </Details>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
+            <button type="button" className="primary" onClick={saveCurrent} disabled={!result || saved}>
+              {saved ? "Saved to history" : "Save to history"}
+            </button>
+            <span className="muted" style={{ fontSize: 13 }}>Keeps this check in the database so you can come back to it.</span>
+          </div>
         </Card>
+
+        <Card title="Recently checked" subtitle="Saved checks from the database. Select one to load it into the form.">
+          {history.length === 0 ? (
+            <p className="muted">Nothing saved yet. Adjust a customer above, then choose Save to history.</p>
+          ) : (
+            <ul className="history-list">
+              {history.map((h) => (
+                <li key={h.id} role="button" tabIndex={0} style={{ cursor: "pointer" }}
+                  onClick={() => loadFromHistory(h.input)}
+                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && loadFromHistory(h.input)}>
+                  <b>{h.input.Contract} · {h.input.tenure} months · ${Number(h.input.MonthlyCharges).toFixed(0)}/mo</b>
+                  <small>
+                    {(ACTION_STYLE[h.recommended_action] || {}).label || h.recommended_action} ·{" "}
+                    {new Date(h.created_at).toLocaleString()}
+                  </small>
+                  <span className="mono" title="Chance of staying">{pct(1 - h.churn_probability)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+        </div>
 
         <div className="result-col">
           {error && <div className="card error-card">{error}</div>}
@@ -260,7 +313,7 @@ export default function Predictor() {
                   />
                 </div>
                 <div className="muted" style={{ fontSize: "13px" }}>
-                  Cohort survival expectation: <b>{Math.round(result.churn_probability * 10)} out of 10</b> subscribers with this profile churn within 30 days.
+                  About <b>{Math.round(result.churn_probability * 10)} in 10</b> customers with this profile leave (calibrated model, based on historical churn).
                 </div>
               </div>
 

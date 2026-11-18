@@ -47,3 +47,31 @@ class PredictionResponse(BaseModel):
     risk_level: Literal["Low", "Medium", "High"]
     recommended_action: str
     reason: str
+
+
+# ---------- database: contact log ----------
+Channel = Literal["Phone call", "Email", "SMS", "In store"]
+ContactAction = Literal["Retention offer ($50 discount)", "Contract upgrade offer",
+                        "Service / support call", "Check-in (no offer)"]
+Outcome = Literal["Pending", "Accepted offer", "Declined", "No answer", "Stayed", "Left"]
+
+
+class ContactCreate(BaseModel):
+    """What an agent records after contacting a customer."""
+    channel: Channel = "Phone call"
+    action: ContactAction = "Retention offer ($50 discount)"
+    outcome: Outcome = "Pending"
+    note: str = Field("", max_length=500)
+    agent: str = Field("", max_length=80)
+
+
+class ContactUpdate(BaseModel):
+    """Change the outcome later, e.g. Pending -> Accepted offer."""
+    outcome: Optional[Outcome] = None
+    note: Optional[str] = Field(None, max_length=500)
+
+
+class Contact(ContactCreate):
+    id: int
+    customer_id: str
+    created_at: str

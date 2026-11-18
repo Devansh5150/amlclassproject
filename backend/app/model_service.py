@@ -48,6 +48,7 @@ class ModelService:
         self.offer_cost = params["business"]["offer_cost"]
         self.clv_months = params["business"]["clv_months"]
         self.low_risk = params["decision"]["low_risk_threshold"]
+        self.backfire_margin = params["decision"].get("backfire_margin", 0.0)
 
         self.classical = _read_json("classical_metrics.json")
         self.uplift_metrics = _read_json("uplift_metrics.json")
@@ -86,12 +87,13 @@ class ModelService:
     def decide(self, churn_prob: float, uplift: float, exp_profit: float) -> tuple[str, str]:
         """
         Simple, explainable decision rules (checked in order):
-          1. negative uplift   -> don't contact (offer may make them leave)
+          1. clearly negative uplift (below -backfire_margin) -> don't contact
+             (tiny negative values are noise between two models, not a real backfire)
           2. low churn risk    -> no action (they will probably stay anyway)
           3. offer pays off    -> send offer
           4. otherwise         -> high risk but offer won't pay off -> other action
         """
-        if uplift < 0:
+        if uplift < -self.backfire_margin:
             return ("Do not contact",
                     "Offer is predicted to backfire for this customer (a 'sleeping dog').")
         if churn_prob < self.low_risk:

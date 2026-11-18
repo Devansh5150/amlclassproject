@@ -53,7 +53,7 @@ If that's positive → send the discount.
 ## 3. What did we find? (the 4 sentences to remember)
 
 1. The churn model is **about 85% good at ranking** customers from risky to safe (ROC-AUC 0.846). All 3 models we tried were about equally good.
-2. If we can only contact **20% of customers**, picking the **most likely to leave** made the most profit: **$37,600**, vs $28,500 using the uplift model and $2,400 picking at random.
+2. If we can only contact **20% of customers**, picking the **most likely to leave** made the most profit: **$37,300**, vs $28,500 using the uplift model and $2,400 picking at random.
 3. The uplift model was better at **avoiding lost causes**, but in our setup that wasn't enough to win.
 4. Profit is highest at about **40% contacted**. Contacting everyone wastes money and annoys the "sleeping dogs".
 
@@ -99,6 +99,8 @@ churn-uplift/
 ├── notebooks/
 │   └── 01_eda.ipynb      📊 Charts exploring the data, with notes. START HERE for the viva
 │
+├── ml-guide/       📖 The ML part explained chapter by chapter (read this for the viva)
+│
 ├── ml/             🧠 The "brain": Python scripts that train the models
 │   ├── download_data.py      1. downloads the dataset
 │   ├── preprocess.py         2. cleans it
@@ -112,6 +114,7 @@ churn-uplift/
 ├── backend/        🍳 The "kitchen" (FastAPI). Loads models, answers the website
 │   ├── app/main.py           the 5 web addresses (endpoints)
 │   ├── app/model_service.py  the logic: scores a customer, decides the action
+│   ├── app/database.py       💾 SQLite database: contact log + prediction history
 │   └── tests/                automatic checks that the API works
 │
 ├── frontend/       🪑 The "dining room" (React website)
@@ -179,6 +182,9 @@ A: No, it's an honest result. In our simulation, the people the offer helps are 
 
 **Q: How did you avoid cheating (data leakage)?**
 A: The model never saw the 20% test customers during training, and data scaling was learned from training data only.
+
+**Q: Where is the database? What does it store?**
+A: `backend/app/database.py` uses **SQLite** (one file, `backend/data/robic.db`, created automatically). The ML scores are read-only, so the database stores what *people* do with them: every contact an agent logs (channel, offer, outcome, note) and every customer checked on the predictor page. It has full create / read / update / delete endpoints (`/customers/{id}/contacts`, `/contacts/{id}`, `/contacts/stats`, `/predictions/history`). See them all at http://127.0.0.1:8000/docs.
 
 **Q: What is your business recommendation?**
 A: Target the highest-risk customers first, about the top 40%. Skip anyone the uplift model says would react badly. Run a real A/B test before trusting uplift numbers.

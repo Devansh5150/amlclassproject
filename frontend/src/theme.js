@@ -1,10 +1,10 @@
 // Chart colors & design system tokens
 export const COLORS = {
-  primary: "#4f46e5",   // Indigo
+  primary: "#E5484D",   // Indigo
   blue: "#2563eb",      // Electric Blue
   orange: "#ea580c",    // Energetic Orange / Amber
   aqua: "#059669",      // Vibrant Emerald
-  purple: "#7c3aed",    // Violet
+  purple: "#E5484D",    // Violet
   neutral: "#94a3b8",   // Slate 400
   grid: "#e2e8f0",      // Light subtle border
   axis: "#64748b",      // Slate 500
@@ -16,13 +16,19 @@ export const METHOD_LABEL = {
   "Churn risk (Random Forest)": "Most likely to leave",
   "Uplift (T-learner)": "Most likely to respond to discount",
   "T-learner (Logistic Regression)": "Most likely to respond to discount",
+  "T-learner (XGBoost)": "Most likely to respond to discount",
   Random: "Random picks",
+  "Random picks": "Random picks"
 };
 
 export const METHOD_COLORS = {
   "Most likely to leave": "#2563eb",
   "Most likely to respond to discount": "#ea580c",
   "Random picks": "#94a3b8",
+  "Churn risk (Random Forest)": "#2563eb",
+  "T-learner (Logistic Regression)": "#ea580c",
+  "T-learner (XGBoost)": "#ea580c",
+  Random: "#94a3b8",
 };
 
 // Classical models

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ACTION_STYLE, RISK_STYLE, pct } from "../theme.js";
+import { API_URL } from "../api.js";
 import {
   SparklesIcon,
   AlertTriangleIcon,
@@ -47,10 +48,10 @@ export function Loading({ error }) {
           <AlertTriangleIcon size={20} />
         </div>
         <div>
-          <h4>Unable to connect to backend</h4>
+          <h4>Can't reach the backend</h4>
           <p>
-            Make sure the FastAPI backend is running on <code>http://127.0.0.1:8000</code>.
-            Run <code>start.bat</code> or run <code>venv\Scripts\python -m uvicorn backend.app.main:app --port 8000</code>, then refresh.
+            This page expects the FastAPI backend at <code>{API_URL}</code>. Start it with <code>start.bat</code>,
+            then refresh. If another app is using that port, close it first.
           </p>
         </div>
       </div>

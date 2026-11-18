@@ -10,60 +10,60 @@
       "method": "Churn risk",
       "percent": 10,
       "contacted": 704,
-      "customers_saved": 169.6,
+      "customers_saved": 168.8,
       "cost": 35200,
-      "value_saved": 157431,
-      "profit": 122231,
-      "roi": 3.472
+      "value_saved": 156757,
+      "profit": 121557,
+      "roi": 3.453
     },
     {
       "method": "Churn risk",
       "percent": 20,
       "contacted": 1409,
-      "customers_saved": 274.2,
+      "customers_saved": 279.6,
       "cost": 70450,
-      "value_saved": 247147,
-      "profit": 176697,
-      "roi": 2.508
+      "value_saved": 250515,
+      "profit": 180065,
+      "roi": 2.556
     },
     {
       "method": "Churn risk",
       "percent": 30,
       "contacted": 2113,
-      "customers_saved": 354.4,
+      "customers_saved": 357.5,
       "cost": 105650,
-      "value_saved": 305814,
-      "profit": 200164,
-      "roi": 1.895
+      "value_saved": 307113,
+      "profit": 201463,
+      "roi": 1.907
     },
     {
       "method": "Churn risk",
       "percent": 40,
       "contacted": 2817,
-      "customers_saved": 417.1,
+      "customers_saved": 418.8,
       "cost": 140850,
-      "value_saved": 346963,
-      "profit": 206113,
-      "roi": 1.463
+      "value_saved": 347910,
+      "profit": 207060,
+      "roi": 1.47
     },
     {
       "method": "Churn risk",
       "percent": 50,
       "contacted": 3522,
-      "customers_saved": 449.7,
+      "customers_saved": 449.8,
       "cost": 176100,
-      "value_saved": 368677,
-      "profit": 192577,
-      "roi": 1.094
+      "value_saved": 368445,
+      "profit": 192345,
+      "roi": 1.092
     },
     {
       "method": "Churn risk",
       "percent": 60,
       "contacted": 4226,
-      "customers_saved": 462.6,
+      "customers_saved": 463.2,
       "cost": 211300,
-      "value_saved": 374582,
-      "profit": 163282,
+      "value_saved": 374692,
+      "profit": 163392,
       "roi": 0.773
     },
     {
@@ -72,29 +72,29 @@
       "contacted": 4930,
       "customers_saved": 468.4,
       "cost": 246500,
-      "value_saved": 374944,
-      "profit": 128444,
+      "value_saved": 374860,
+      "profit": 128360,
       "roi": 0.521
     },
     {
       "method": "Churn risk",
       "percent": 80,
       "contacted": 5634,
-      "customers_saved": 462.3,
+      "customers_saved": 462.7,
       "cost": 281700,
-      "value_saved": 367499,
-      "profit": 85799,
+      "value_saved": 367689,
+      "profit": 85989,
       "roi": 0.305
     },
     {
       "method": "Churn risk",
       "percent": 90,
       "contacted": 6339,
-      "customers_saved": 451.6,
+      "customers_saved": 452.0,
       "cost": 316950,
-      "value_saved": 358548,
-      "profit": 41598,
-      "roi": 0.131
+      "value_saved": 358712,
+      "profit": 41762,
+      "roi": 0.132
     },
     {
       "method": "Churn risk",

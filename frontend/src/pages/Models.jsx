@@ -39,14 +39,16 @@ export default function Models() {
   const { data, error } = useApi(api.metrics);
   if (!data) return <Loading error={error} />;
 
-  const { classical, uplift } = data;
-  const methods = Object.keys(uplift.gain_curves);
-  const names = methods.map((m) => METHOD_LABEL[m]);
+  const { classical = {}, uplift = {} } = data;
+  const methods = Object.keys(uplift.gain_curves || {});
+  const names = methods.map((m) => METHOD_LABEL[m] || m);
 
-  const top = methods.map((m) => ({
-    name: METHOD_LABEL[m],
-    saved: Math.round(uplift.methods[m].true_saved_top20),
-  }));
+  const top = methods
+    .filter((m) => uplift.methods?.[m])
+    .map((m) => ({
+      name: METHOD_LABEL[m] || m,
+      saved: Math.round(uplift.methods[m]?.true_saved_top20 ?? 0),
+    }));
 
   const order = [
     "Most likely to leave",
@@ -54,17 +56,19 @@ export default function Models() {
     "Random picks",
   ];
   top.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
-  const k = uplift.k_customers;
+  const k = uplift.k_customers || 282;
 
-  const gain = uplift.gain_curves[methods[0]].map((p, i) => ({
-    pct: p.pct,
-    ...Object.fromEntries(
-      methods.map((m) => [
-        METHOD_LABEL[m],
-        Math.round(uplift.gain_curves[m][i].saved),
-      ])
-    ),
-  }));
+  const gain = (methods.length > 0 && uplift.gain_curves?.[methods[0]])
+    ? uplift.gain_curves[methods[0]].map((p, i) => ({
+        pct: p.pct,
+        ...Object.fromEntries(
+          methods.map((m) => [
+            METHOD_LABEL[m] || m,
+            Math.round(uplift.gain_curves[m]?.[i]?.saved ?? 0),
+          ])
+        ),
+      }))
+    : [];
 
   return (
     <>
@@ -170,9 +174,9 @@ export default function Models() {
             />
             <ReferenceLine
               x={20}
-              stroke="#6366f1"
+              stroke="#EF5A5F"
               strokeDasharray="4 4"
-              label={{ value: "20% Budget Cutoff", fontSize: 11, position: "top", fill: "#4f46e5" }}
+              label={{ value: "20% Budget Cutoff", fontSize: 11, position: "top", fill: "#E5484D" }}
             />
             {names.map((n) => (
               <Line
@@ -297,15 +301,18 @@ export default function Models() {
               </tr>
             </thead>
             <tbody>
-              {methods.map((m) => (
-                <tr key={m}>
-                  <td><b>{m}</b></td>
-                  <td><b>{uplift.methods[m].true_saved_top20}</b></td>
-                  <td>{uplift.methods[m].qini_auc.toFixed(3)}</td>
-                  <td>{(uplift.methods[m].observed_uplift_at_20 * 100).toFixed(1)}%</td>
-                  <td>{uplift.methods[m].segments_top20.lost_cause ?? 0}</td>
-                </tr>
-              ))}
+              {methods.map((m) => {
+                const methodObj = uplift.methods?.[m] || {};
+                return (
+                  <tr key={m}>
+                    <td><b>{m}</b></td>
+                    <td><b>{methodObj.true_saved_top20 ?? "—"}</b></td>
+                    <td>{methodObj.qini_auc != null ? methodObj.qini_auc.toFixed(3) : "—"}</td>
+                    <td>{methodObj.observed_uplift_at_20 != null ? `${(methodObj.observed_uplift_at_20 * 100).toFixed(1)}%` : "—"}</td>
+                    <td>{methodObj.segments_top20?.lost_cause ?? 0}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

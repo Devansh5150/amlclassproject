@@ -34,8 +34,8 @@ function getAvatarColor(name = "") {
   const colors = [
     { bg: "#dbeafe", text: "#1d4ed8" },
     { bg: "#fce7f3", text: "#be185d" },
-    { bg: "#ede9fe", text: "#6d28d9" },
-    { bg: "#e0e7ff", text: "#4338ca" },
+    { bg: "#FDE4E2", text: "#B8282E" },
+    { bg: "#fee2e2", text: "#CC3339" },
     { bg: "#ccfbf1", text: "#0f766e" },
     { bg: "#fef3c7", text: "#b45309" },
   ];

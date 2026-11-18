@@ -1,6 +1,6 @@
 # Customer Churn Prediction with Simple Uplift Extension
 
-> 👋 **New here or confused? Read [docs/START_HERE.md](docs/START_HERE.md) first.** It explains everything in plain English. To run the app, double-click `start.bat`.
+> 👋 **New here or confused? Read [docs/START_HERE.md](docs/START_HERE.md) first.** For the full ML story, see **[ml-guide/](ml-guide/README.md)**. It explains everything in plain English. To run the app, double-click `start.bat`.
 
 **Group 11 · Track 3 Project Showcase · Topic A**
 
@@ -46,6 +46,7 @@ python ml/preprocess.py      # cleans it  -> data/processed/telco_clean.csv
 |----------|-------|
 | ML       | Python, pandas, scikit-learn, XGBoost, SHAP, scikit-uplift |
 | Backend  | FastAPI |
+| Database | SQLite (contact log + prediction history) |
 | Frontend | React (Vite) + Recharts |
 | Deploy   | Vercel (frontend), Render (backend) |
 
@@ -97,6 +98,18 @@ actually churn (precision 54%). That trade-off is fine when a retention offer is
 no two-year contract, electronic-check payment, and high monthly charges all push predictions towards churn.
 These match the EDA findings. Charts are in `ml/results/figures/`.
 
+**Calibration (fixing the probabilities):** class weights help recall but push every probability up. The raw Random Forest
+predicted **39.4%** churn on average when the real rate is **26.5%**. That doesn't hurt *ranking* (ROC-AUC), but the app shows these
+numbers as "chance of staying", so the saved model is wrapped in `CalibratedClassifierCV` (sigmoid / Platt scaling, 5-fold on training data).
+
+| Random Forest (test set) | Mean predicted churn | Brier score (lower = better) | ROC-AUC |
+|---|---|---|---|
+| Before calibration | 39.4% | 0.158 | 0.846 |
+| **After calibration** | **26.7%** (actual 26.5%) | **0.136** | **0.846** |
+
+The precision / recall / F1 table above uses the uncalibrated models at a 0.5 cut-off, to compare the three models like-for-like.
+Chart: `calibration_curve.png`. SHAP explanations use the uncalibrated model (calibration rescales the scores but doesn't change which features matter).
+
 ### 6.2 Uplift extension (Phase 4): ⚠️ SIMULATED treatment
 ```bash
 python ml/simulate_treatment.py   # prints the simulated design
@@ -125,7 +138,7 @@ Base learner chosen by 5-fold cross-validated Qini on training data: **Logistic 
 
 | Ranking | Qini AUC | Observed uplift in top 20% | Expected customers saved (true, simulated) | Lost causes contacted |
 |---|---|---|---|---|
-| **Churn risk (Random Forest)** | **0.040** | 12.6 pts | **59.1** | 56 |
+| **Churn risk (Random Forest, calibrated)** | **0.040** | 12.7 pts | **58.2** | 56 |
 | T-learner (Logistic Regression) ✅ chosen | 0.028 | 10.9 pts | 50.9 | 17 |
 | T-learner (XGBoost) | 0.030 | 13.2 pts | 56.0 | 21 |
 | Random | 0.002 | 5.0 pts | 19.8 | 27 |
@@ -152,17 +165,17 @@ Profit on the 1,409 test customers:
 
 | Contact top | Churn risk | Uplift (T-learner) | Random |
 |---|---|---|---|
-| 10% | $26,186 | $17,187 | $1,623 |
-| **20%** | **$37,579** (ROI 266%) | $28,476 | $2,383 |
-| 30% | $41,091 | $37,010 | $1,844 |
-| **40%** | **$42,646** ← max | $41,369 | $2,967 |
+| 10% | $25,486 | $17,187 | $1,623 |
+| **20%** | **$37,264** (ROI 264%) | $28,476 | $2,383 |
+| 30% | $40,705 | $37,010 | $1,844 |
+| **40%** | **$42,459** ← max | $41,369 | $2,967 |
 | 60% | $33,957 | $33,036 | $1,237 |
 | 100% | $1,168 | $1,168 | $1,168 |
 
 **Recommendation**
-1. At a 20% budget, **target by churn risk**: $37.6k profit vs $28.5k for uplift and $2.4k for random.
+1. At a 20% budget, **target by churn risk**: $37.3k profit vs $28.5k for uplift and $2.4k for random.
 2. The most profitable campaign size is **about the top 40%**. Contacting more *reduces* profit, because extra offers go to customers who would stay anyway or who react badly.
-3. Use the uplift model as a **filter**: skip customers with negative predicted uplift (likely "sleeping dogs").
+3. Use the uplift model as a **filter**: skip customers with clearly negative predicted uplift (below −0.02, set by `backfire_margin` in `params.yaml`). Values within ±0.02 of zero are noise between the two T-learner models, not real "sleeping dogs".
 4. Run a **real A/B test** of the offer before trusting uplift scores, because the effects here are simulated.
 
 ## 8. Screenshots & Demo

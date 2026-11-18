@@ -20,6 +20,7 @@ import {
   CheckIcon
 } from "../components/icons.jsx";
 import { ACTION_HELP, money, pct } from "../theme.js";
+import ContactLog from "../components/ContactLog.jsx";
 
 const FEATURES = [
   "tenure",
@@ -255,6 +256,8 @@ export default function CustomerDetail() {
           )}
         </Card>
       </div>
+
+      <ContactLog customerId={c.customerID} suggestedAction={c.recommended_action} />
 
       {options.length > 0 && (
         <Card
