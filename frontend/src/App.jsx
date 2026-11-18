@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { NavLink, Route, Routes, Link, useNavigate } from "react-router-dom";
-import Dashboard from "./pages/Dashboard.jsx";
+import { NavLink, Route, Routes, Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import ManagerOverview from "./pages/ManagerOverview.jsx";
+import DashboardAgent from "./pages/DashboardAgent.jsx";
+import DashboardDataScientist from "./pages/DashboardDataScientist.jsx";
 import Customers from "./pages/Customers.jsx";
 import CustomerDetail from "./pages/CustomerDetail.jsx";
 import Campaign from "./pages/Campaign.jsx";
@@ -8,16 +10,17 @@ import Models from "./pages/Models.jsx";
 import Predictor from "./pages/Predictor.jsx";
 import { ViewModeProvider, useViewMode } from "./context/ViewModeContext.jsx";
 import { api } from "./api.js";
-import { Glyph, Segmented } from "./components/clay.jsx";
+import { Glyph, Segmented } from "./components/kit.jsx";
 
 const PERSONAS = [
   { value: "manager", label: "Manager", icon: "tie" },
   { value: "agent", label: "Support Agent", icon: "headset" },
-  { value: "tech", label: "Data Scientist", icon: "flask" },
+  { value: "scientist", label: "Data Scientist", icon: "flask" },
 ];
+const PERSONA_PATHS = PERSONAS.map((p) => p.value);
 
 const NAV = [
-  { to: "/", label: "Overview", icon: "home", end: true },
+  { to: "/:persona", label: "Overview", icon: "home", end: true },
   { to: "/customers", label: "Who to call", icon: "users" },
   { to: "/campaign", label: "Campaign planner", icon: "calc" },
   { to: "/predict", label: "Check customer", icon: "search" },
@@ -55,7 +58,7 @@ function Notifications() {
         {Glyph.bell({ size: 20 })}
       </button>
       {open && (
-        <div className="notif-pop clay-raised" role="dialog" aria-label="Recent activity">
+        <div className="notif-pop ax-raised" role="dialog" aria-label="Recent activity">
           <b className="notif-title">Recent activity</b>
           {items == null ? (
             <p className="muted">Loading…</p>
@@ -83,7 +86,15 @@ function Notifications() {
 function AppContent() {
   const { viewMode, setViewMode } = useViewMode();
   const navigate = useNavigate();
-  const persona = viewMode === "scientist" ? "tech" : viewMode;
+  const { pathname } = useLocation();
+  const fromUrl = pathname.split("/")[1];
+  const savedPersona = PERSONA_PATHS.includes(viewMode) ? viewMode : viewMode === "tech" ? "scientist" : "manager";
+  const persona = PERSONA_PATHS.includes(fromUrl) ? fromUrl : savedPersona;
+
+  // Remember the persona whose page is open, so "/" and the Overview button return to it
+  useEffect(() => {
+    if (PERSONA_PATHS.includes(fromUrl) && fromUrl !== viewMode) setViewMode(fromUrl);
+  }, [fromUrl, viewMode, setViewMode]);
 
   const handleExport = async () => {
     try {
@@ -97,7 +108,7 @@ function AppContent() {
       const blob = new Blob([[headers.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `robic_customers_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.download = `aircel_customers_${new Date().toISOString().slice(0, 10)}.csv`;
       link.click();
     } catch {
       /* the page itself shows the backend error */
@@ -105,29 +116,24 @@ function AppContent() {
   };
 
   return (
-    <div className="clay-app">
-      <header className="clay-topbar clay-raised">
-        <Link to="/" className="clay-brand" aria-label="Robic home">
+    <div className="ax-app">
+      <header className="ax-topbar ax-raised">
+        <Link to={`/${persona}`} className="ax-brand" aria-label="Aircel home">
           <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
-            <defs>
-              <linearGradient id="brand-g" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#F78C8F" /><stop offset="1" stopColor="#E5484D" />
-              </linearGradient>
-            </defs>
-            <circle cx="9" cy="31" r="4.5" fill="url(#brand-g)" />
-            <path d="M6 19a15 15 0 0 1 15 15" stroke="url(#brand-g)" strokeWidth="5" strokeLinecap="round" fill="none" />
-            <path d="M6 8a26 26 0 0 1 26 26" stroke="url(#brand-g)" strokeWidth="5" strokeLinecap="round" fill="none" />
+            <circle cx="9" cy="31" r="4.5" fill="#E5484D" />
+            <path d="M6 19a15 15 0 0 1 15 15" stroke="#E5484D" strokeWidth="5" strokeLinecap="round" fill="none" />
+            <path d="M6 8a26 26 0 0 1 26 26" stroke="#E5484D" strokeWidth="5" strokeLinecap="round" fill="none" />
           </svg>
           <span>
-            <b>Robic</b>
+            <b>Aircel</b>
             <small>Customer Retention Platform</small>
           </span>
         </Link>
 
         <Segmented label="Choose your view" options={PERSONAS} value={persona}
-          onChange={(v) => { setViewMode(v); navigate("/"); }} />
+          onChange={(v) => { setViewMode(v); navigate(`/${v}`); }} />
 
-        <div className="clay-top-actions">
+        <div className="ax-top-actions">
           <button type="button" className="round-btn" onClick={handleExport} aria-label="Export customer list as CSV"
             title="Export customer list (CSV)">
             {Glyph.download({ size: 20 })}
@@ -137,19 +143,22 @@ function AppContent() {
         </div>
       </header>
 
-      <div className="clay-body">
-        <nav className="clay-sidebar clay-raised" aria-label="Main">
+      <div className="ax-body">
+        <nav className="ax-sidebar ax-raised" aria-label="Main">
           {NAV.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end} aria-label={item.label} data-tip={item.label}
+            <NavLink key={item.to} to={item.to.replace(":persona", persona)} end={item.end} aria-label={item.label} data-tip={item.label}
               className={({ isActive }) => `side-btn ${isActive ? "is-active" : ""}`}>
               {Glyph[item.icon]({ size: 22 })}
             </NavLink>
           ))}
         </nav>
 
-        <main className="clay-main main-container">
+        <main className="ax-main main-container">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Navigate to={`/${savedPersona}`} replace />} />
+            <Route path="/manager" element={<ManagerOverview />} />
+            <Route path="/agent" element={<DashboardAgent />} />
+            <Route path="/scientist" element={<DashboardDataScientist />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/customers/:id" element={<CustomerDetail />} />
             <Route path="/campaign" element={<Campaign />} />
@@ -159,8 +168,8 @@ function AppContent() {
         </main>
       </div>
 
-      <footer className="clay-footer">
-        Robic Customer Retention · Random Forest churn model · T-learner uplift model (Logistic Regression) ·
+      <footer className="ax-footer">
+        Aircel Customer Retention · Random Forest churn model · T-learner uplift model (Logistic Regression) ·
         IBM Telco data, 7,043 customers
       </footer>
     </div>

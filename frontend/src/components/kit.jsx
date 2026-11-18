@@ -1,5 +1,5 @@
-// Claymorphism building blocks: icon glyphs, the raised "clay tile" that holds them,
-// the segmented control, and the simulation banner. Styles live in src/clay.css.
+// Shared UI building blocks: icon glyphs, the coloured icon tile, the segmented control,
+// and the simulation banner. Styles live in src/aircel.css.
 import React from "react";
 
 const G = ({ size = 20, children, sw = 2.2 }) => (
@@ -36,20 +36,20 @@ export const Glyph = {
   tie: (p) => <G {...p}><path d="M9.5 3h5l-1 3.5 2.5 9-4 5-4-5 2.5-9Z" /></G>,
 };
 
-// Raised clay tile holding a glyph. tone: indigo | rose | amber | emerald | lavender | blue
-export function ClayIcon({ name, tone = "indigo", size = 48, glyph = 22 }) {
+// Coloured tile holding a glyph. tone: indigo | rose | amber | emerald | lavender | blue
+export function IconTile({ name, tone = "indigo", size = 48, glyph = 22 }) {
   const Ico = Glyph[name];
   return (
-    <span className={`clay-icon tone-${tone}`} style={{ width: size, height: size }}>
+    <span className={`ax-icon tone-${tone}`} style={{ width: size, height: size }}>
       <Ico size={glyph} />
     </span>
   );
 }
 
-// Raised segmented control (persona switcher, method toggles)
+// Segmented control (persona switcher, method toggles)
 export function Segmented({ options, value, onChange, label }) {
   return (
-    <div className="clay-segmented" role="tablist" aria-label={label}>
+    <div className="ax-segmented" role="tablist" aria-label={label}>
       {options.map((o) => (
         <button key={o.value} type="button" role="tab" aria-selected={value === o.value}
           className={value === o.value ? "is-active" : ""} onClick={() => onChange(o.value)}>
@@ -64,8 +64,8 @@ export function Segmented({ options, value, onChange, label }) {
 // Mandatory disclaimer: shown wherever uplift, profit, ROI or customers-saved figures appear.
 export function SimulationBanner() {
   return (
-    <aside className="clay-disclaimer" role="note">
-      <ClayIcon name="info" tone="indigo" size={40} glyph={20} />
+    <aside className="ax-disclaimer" role="note">
+      <IconTile name="info" tone="indigo" size={40} glyph={20} />
       <strong>Simulation disclaimer</strong>
       <p>
         The dataset has no record of who received a discount, so the discount experiment and every

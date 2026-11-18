@@ -173,10 +173,10 @@ export function RiskBadge({ level }) {
 export function StayBar({ value }) {
   const color =
     value >= 0.7
-      ? "linear-gradient(90deg, #10b981 0%, #059669 100%)"
+      ? "#059669"
       : value >= 0.4
-      ? "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)"
-      : "linear-gradient(90deg, #f43f5e 0%, #e11d48 100%)";
+      ? "#d97706"
+      : "#e11d48";
 
   const textColor =
     value >= 0.7 ? "#059669" : value >= 0.4 ? "#d97706" : "#e11d48";
@@ -201,7 +201,7 @@ export function SimulatedNote() {
     <div className="sim-note-box">
       <InfoIcon size={15} className="sim-note-icon" />
       <span className="sim-note-text">
-        Robic has no record of past discounts, so the discount's effect is an{" "}
+        Aircel has no record of past discounts, so the discount's effect is an{" "}
         <b>estimate based on a simulated uplift trial</b>. Treat these figures as a strategic guide.
       </span>
     </div>

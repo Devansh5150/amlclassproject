@@ -1,7 +1,7 @@
 """
-Build the customer file for "Robic", a FICTIONAL phone company used in the demo app.
+Build the customer file for "Aircel", a FICTIONAL phone company used in the demo app.
 
-Robic's customers = all 7,043 real (anonymous) records from the IBM Telco dataset,
+Aircel's customers = all 7,043 real (anonymous) records from the IBM Telco dataset,
 with generated FAKE names / regions so the demo feels like a real customer system.
 
 For every customer we add:
@@ -13,7 +13,7 @@ Honest scoring: OUT-OF-FOLD predictions. The customers are split into 5 groups, 
 each group is scored by models trained on the OTHER 4 groups. So no customer is
 scored by a model that saw them during training.
 
-Also writes ml/results/robic_roi.json: campaign profit for Robic's whole customer base.
+Also writes ml/results/robic_roi.json: campaign profit for Aircel's whole customer base.
 
 Run from the project root (after train_classical.py and train_uplift.py):
     python ml/score_customers.py
@@ -81,11 +81,11 @@ def describe(col: str, row: pd.Series) -> str:
     v = row[col]
     if col == "tenure":
         months = f"{v} month" + ("" if v == 1 else "s")
-        return f"New customer (only {months} with Robic)" if v < 12 else f"Loyal for {months}"
+        return f"New customer (only {months} with Aircel)" if v < 12 else f"Loyal for {months}"
     if col == "MonthlyCharges":
         return f"{'High' if v >= 70 else 'Low' if v < 35 else 'Medium'} monthly bill (${v:.0f})"
     if col == "TotalCharges":
-        return f"Has spent only ${v:,.0f} with Robic so far" if v < 1000 else f"Has spent ${v:,.0f} with Robic"
+        return f"Has spent only ${v:,.0f} with Aircel so far" if v < 1000 else f"Has spent ${v:,.0f} with Aircel"
     if col == "SeniorCitizen":
         return "Senior citizen" if v == 1 else "Not a senior citizen"
     if col == "gender":
@@ -159,7 +159,7 @@ def main() -> None:
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(OUT_PATH, index=False)
 
-    # ---- 4. Campaign profit for ALL Robic customers (same method as business_roi.py) ----
+    # ---- 4. Campaign profit for ALL Aircel customers (same method as business_roi.py) ----
     with open(PROJECT_ROOT / "params.yaml") as f:
         biz = yaml.safe_load(f)["business"]
     value = sim["MonthlyCharges"] * biz["clv_months"] * sim["true_effect"]  # $ saved if contacted (simulated truth)
@@ -180,7 +180,7 @@ def main() -> None:
                    "assumptions": {"offer_cost": biz["offer_cost"], "clv_months": biz["clv_months"]},
                    "table": table}, f, indent=2)
 
-    print(f"\nSaved {len(out):,} Robic customers -> {OUT_PATH}")
+    print(f"\nSaved {len(out):,} Aircel customers -> {OUT_PATH}")
     print(f"Saved campaign profit table -> {ROI_PATH}")
     print(pd.DataFrame(table).pivot(index="percent", columns="method", values="profit").to_string())
 

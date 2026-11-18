@@ -311,7 +311,7 @@ export default function DashboardAgent() {
                       style={{ padding: "2px 8px", fontSize: "11px" }}
                       onClick={() =>
                         handleCopyScript(
-                          `"Hi ${currentCustomer.name.split(" ")[0]}, my name is Sarah from Robic Telecom. We noticed your account is eligible for our preferred annual rate lock. Because you've been with us for ${currentCustomer.tenure} months, I am pre-authorized to apply an immediate $50 credit to your bill and include complimentary cyber security if we upgrade you to our 1-year rate guarantee today."`
+                          `"Hi ${currentCustomer.name.split(" ")[0]}, my name is Sarah from Aircel. We noticed your account is eligible for our preferred annual rate lock. Because you've been with us for ${currentCustomer.tenure} months, I am pre-authorized to apply an immediate $50 credit to your bill and include complimentary cyber security if we upgrade you to our 1-year rate guarantee today."`
                         )
                       }
                     >
@@ -320,7 +320,7 @@ export default function DashboardAgent() {
                     </button>
                   </div>
                   <blockquote className="phone-script-quote">
-                    "Hi <b>{currentCustomer.name.split(" ")[0]}</b>, my name is Sarah from Robic. We noticed your account is eligible for our preferred annual rate lock.
+                    "Hi <b>{currentCustomer.name.split(" ")[0]}</b>, my name is Sarah from Aircel. We noticed your account is eligible for our preferred annual rate lock.
                     Because you've been with us for {currentCustomer.tenure} months, I am pre-authorized to apply an immediate <b>$50 bill credit</b> and include <b>complimentary cyber security</b> if we upgrade you to our 1-year rate guarantee today."
                   </blockquote>
                 </div>

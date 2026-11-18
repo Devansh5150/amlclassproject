@@ -77,9 +77,9 @@ export default function DashboardManager() {
         <div className="hero-badge-tag">
           <span>👔 Executive Overview</span>
         </div>
-        <h1 className="hero-heading">How is Robic doing today?</h1>
+        <h1 className="hero-heading">How is Aircel doing today?</h1>
         <p className="hero-subheading">
-          Robic has <b>{data.n_customers.toLocaleString()} total subscribers</b> generating <b>{money(data.monthly_revenue)}/month</b>.
+          Aircel has <b>{data.n_customers.toLocaleString()} total subscribers</b> generating <b>{money(data.monthly_revenue)}/month</b>.
           Here is your clear, plain-English summary of subscriber health and revenue protection.
         </p>
       </div>
@@ -197,7 +197,7 @@ export default function DashboardManager() {
             <div>
               <h2 className="card-box-title">💸 Smart Retention Profit Simulator</h2>
               <p className="card-box-sub">
-                Drag the slider to see how much profit Robic makes by giving $50 retention discounts.
+                Drag the slider to see how much profit Aircel makes by giving $50 retention discounts.
               </p>
             </div>
             <Link to="/campaign" className="card-box-action-link">

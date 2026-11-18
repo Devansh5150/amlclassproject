@@ -1,4 +1,4 @@
-// Manager overview in the claymorphism design. Every number comes from the API:
+// Manager overview (/manager). Every number comes from the API:
 // GET /summary (customers, risk, actions, churn drivers) and GET /metrics (campaign profit table).
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,8 +8,7 @@ import {
 } from "recharts";
 import { api } from "../api.js";
 import { Loading, useApi } from "../components/ui.jsx";
-import { ClayIcon, SimulationBanner } from "../components/clay.jsx";
-import ClayScene from "../components/ClayScene.jsx";
+import { IconTile, SimulationBanner } from "../components/kit.jsx";
 
 const RISK = [
   { key: "High", label: "High risk", color: "#E11D48", mark: "▲" },
@@ -46,7 +45,7 @@ const churnOf = (rows, group) => 1 - (rows.find((r) => r.group === group)?.reten
 function ProfitTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="clay-tooltip">
+    <div className="ax-tooltip">
       <b>{label}% of customers contacted</b>
       {payload.map((p) => (
         <div key={p.dataKey}>
@@ -106,12 +105,11 @@ export default function ManagerOverview() {
     <div className="ov">
       <div className="ov-main">
         {/* ---------- welcome ---------- */}
-        <header className="ov-hero clay-raised">
+        <header className="ov-hero ax-raised">
           <div className="ov-hero-text">
             <h1>{greeting()} <span aria-hidden="true">👋</span></h1>
             <p>Here's your retention snapshot for <b className="mono">{n(total)}</b> customers.</p>
           </div>
-          <ClayScene className="ov-hero-scene" />
         </header>
 
         {/* ---------- KPIs ---------- */}
@@ -122,8 +120,8 @@ export default function ManagerOverview() {
             { icon: "coins", tone: "amber", value: k(s.monthly_revenue), label: "Monthly revenue" },
             { icon: "alert", tone: "rose", value: k(s.monthly_revenue_at_risk), label: "Revenue at risk", note: "from high-risk customers" },
           ].map((c) => (
-            <article key={c.label} className="kpi clay-raised clay-hover">
-              <ClayIcon name={c.icon} tone={c.tone} size={58} glyph={26} />
+            <article key={c.label} className="kpi ax-raised ax-hover">
+              <IconTile name={c.icon} tone={c.tone} size={58} glyph={26} />
               <div>
                 <div className="kpi-value mono">{c.value}</div>
                 <div className="kpi-label">{c.label}</div>
@@ -135,10 +133,10 @@ export default function ManagerOverview() {
 
         <div className="ov-row ov-row-a">
           {/* ---------- risk donut ---------- */}
-          <section className="clay-raised panel">
+          <section className="ax-raised panel">
             <h2 className="panel-title">Customer risk distribution</h2>
             <div className="risk-body">
-              <div className="donut clay-recessed">
+              <div className="donut ax-recessed">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={riskData} dataKey="value" nameKey="label" innerRadius="70%" outerRadius="94%"
@@ -169,13 +167,13 @@ export default function ManagerOverview() {
           </section>
 
           {/* ---------- actions ---------- */}
-          <section className="clay-raised panel">
+          <section className="ax-raised panel">
             <h2 className="panel-title">Recommended actions <span className="muted">(all customers)</span></h2>
             <div className="action-tiles">
               {ACTIONS.map((a) => (
-                <button key={a.key} type="button" className={`action-tile tone-${a.tone} clay-hover`}
+                <button key={a.key} type="button" className={`action-tile tone-${a.tone} ax-hover`}
                   onClick={() => navigate(`/customers?action=${encodeURIComponent(a.key)}`)}>
-                  <ClayIcon name={a.icon} tone={a.tone} size={40} glyph={20} />
+                  <IconTile name={a.icon} tone={a.tone} size={40} glyph={20} />
                   <b className="mono">{n(s.action_counts[a.key] || 0)}</b>
                   <span>{a.label}</span>
                 </button>
@@ -186,7 +184,7 @@ export default function ManagerOverview() {
 
         <div className="ov-row ov-row-b">
           {/* ---------- profit simulation ---------- */}
-          <section className="clay-raised panel">
+          <section className="ax-raised panel">
             <div className="panel-head">
               <h2 className="panel-title">Campaign profit simulation</h2>
               <ul className="line-legend">
@@ -195,7 +193,7 @@ export default function ManagerOverview() {
                 ))}
               </ul>
             </div>
-            <div className="chart-well clay-recessed">
+            <div className="chart-well ax-recessed">
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={curve} margin={{ top: 34, right: 18, left: 4, bottom: 18 }}>
                   <CartesianGrid stroke="#F5DEDB" strokeDasharray="4 6" vertical={false} />
@@ -219,8 +217,8 @@ export default function ManagerOverview() {
           </section>
 
           {/* ---------- investment summary ---------- */}
-          <section className="clay-raised panel">
-            <h2 className="panel-title with-icon"><ClayIcon name="calc" tone="indigo" size={34} glyph={17} />Investment summary</h2>
+          <section className="ax-raised panel">
+            <h2 className="panel-title with-icon"><IconTile name="calc" tone="indigo" size={34} glyph={17} />Investment summary</h2>
             <dl className="summary-rows">
               <div><dt>Best strategy</dt><dd><span className="pill pill-indigo">Churn-risk targeting</span></dd></div>
               <div><dt>Peak profit</dt><dd><span className="pill pill-emerald mono">{k(best.profit)} at {best.percent}%</span></dd></div>
@@ -228,12 +226,12 @@ export default function ManagerOverview() {
               <div><dt>Uplift model peak</dt><dd><span className="pill mono">{k(upliftPeak.profit)} at {upliftPeak.percent}%</span></dd></div>
               <div><dt>Random targeting</dt><dd><span className="pill mono">~{k(randomPeak.profit)} max</span></dd></div>
             </dl>
-            <Link to="/campaign" className="clay-button">Plan a campaign</Link>
+            <Link to="/campaign" className="ax-button">Plan a campaign</Link>
           </section>
         </div>
 
         {/* ---------- accounts to rescue ---------- */}
-        <section className="clay-raised panel">
+        <section className="ax-raised panel">
           <div className="panel-head">
             <h2 className="panel-title">Accounts to rescue first</h2>
             <Link to="/customers" className="text-link">See all customers</Link>
@@ -241,7 +239,7 @@ export default function ManagerOverview() {
           <ul className="rescue-grid">
             {s.top_at_risk.slice(0, 6).map((c) => (
               <li key={c.customerID}>
-                <Link to={`/customers/${c.customerID}`} className="rescue-item clay-hover">
+                <Link to={`/customers/${c.customerID}`} className="rescue-item ax-hover">
                   <span className="avatar">{initials(c.name)}</span>
                   <span className="rescue-who">
                     <b>{c.name}</b>
@@ -262,11 +260,11 @@ export default function ManagerOverview() {
 
       {/* ---------- right column ---------- */}
       <aside className="ov-side">
-        <section className="clay-raised panel takeaway">
-          <h2 className="panel-title with-icon"><ClayIcon name="sparkle" tone="indigo" size={34} glyph={17} />Key takeaway</h2>
+        <section className="ax-raised panel takeaway">
+          <h2 className="panel-title with-icon"><IconTile name="sparkle" tone="indigo" size={34} glyph={17} />Key takeaway</h2>
           <p>Contacting about {best.percent}% of customers gives the highest profit.</p>
-          <div className="takeaway-figure clay-raised">
-            <ClayIcon name="chart" tone="indigo" size={46} glyph={22} />
+          <div className="takeaway-figure ax-raised">
+            <IconTile name="chart" tone="indigo" size={46} glyph={22} />
             <div>
               <b className="mono">{k(best.profit)}</b>
               <span>Peak campaign profit ({best.percent}% contacted)</span>
@@ -274,12 +272,12 @@ export default function ManagerOverview() {
           </div>
         </section>
 
-        <section className="clay-raised panel">
+        <section className="ax-raised panel">
           <h2 className="panel-title">Why customers leave</h2>
           <ul className="reasons">
             {reasons.map((r) => (
-              <li key={r.title} className="reason clay-raised">
-                <ClayIcon name={r.icon} tone="lavender" size={38} glyph={18} />
+              <li key={r.title} className="reason ax-raised">
+                <IconTile name={r.icon} tone="lavender" size={38} glyph={18} />
                 <div>
                   <b>{r.title}</b>
                   <span>{r.text}</span>
