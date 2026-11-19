@@ -1,115 +1,87 @@
-// Chart colors & design system tokens
-export const COLORS = {
-  primary: "#E5484D",   // Indigo
-  blue: "#2563eb",      // Electric Blue
-  orange: "#ea580c",    // Energetic Orange / Amber
-  aqua: "#059669",      // Vibrant Emerald
-  purple: "#E5484D",    // Violet
-  neutral: "#94a3b8",   // Slate 400
-  grid: "#e2e8f0",      // Light subtle border
-  axis: "#64748b",      // Slate 500
+// myDel Retention Desk: colour tokens shared by charts and badges.
+// Keep in sync with the :root variables in styles.css.
+// Series colours are tuned for the dark (default) theme; gridlines, axes and labels
+// are themed in CSS, so only data colours live here.
+export const C = {
+  ink: "#F5F5F7",
+  ink2: "#A1A5B0",
+  ink3: "#7C808C",
+  rule: "#2C2E35",
+  grid: "#24262C",
+  paper: "#22242B",
+  brand: "#FF6689",  // accent: brand + churn-risk targeting
+  stay: "#2E9E4F",   // likely to stay
+  hold: "#C08A1E",   // could go either way / call instead
+  drop: "#E0622F",   // likely to leave (orange, never the accent pink)
+  offer: "#5B8DEF",  // discount ribbon
+  uplift: "#A387FF", // uplift model
+  quiet: "#6F7480",  // random / no action
 };
+C.line = C.brand;
+
+// Legacy alias used by a few charts
+export const COLORS = { primary: C.line, grid: C.grid, axis: C.ink2, neutral: C.quiet };
+
+export const AXIS = { fill: C.ink2, fontSize: 12, fontFamily: "Figtree, sans-serif" };
 
 // Plain-English names for the targeting methods
 export const METHOD_LABEL = {
   "Churn risk": "Most likely to leave",
   "Churn risk (Random Forest)": "Most likely to leave",
-  "Uplift (T-learner)": "Most likely to respond to discount",
-  "T-learner (Logistic Regression)": "Most likely to respond to discount",
-  "T-learner (XGBoost)": "Most likely to respond to discount",
+  "Uplift (T-learner)": "Most likely to respond",
+  "T-learner (Logistic Regression)": "Most likely to respond",
+  "T-learner (XGBoost)": "Most likely to respond",
   Random: "Random picks",
-  "Random picks": "Random picks"
+  "Random picks": "Random picks",
 };
 
 export const METHOD_COLORS = {
-  "Most likely to leave": "#2563eb",
-  "Most likely to respond to discount": "#ea580c",
-  "Random picks": "#94a3b8",
-  "Churn risk (Random Forest)": "#2563eb",
-  "T-learner (Logistic Regression)": "#ea580c",
-  "T-learner (XGBoost)": "#ea580c",
-  Random: "#94a3b8",
+  "Most likely to leave": C.brand,
+  "Most likely to respond": C.uplift,
+  "Random picks": C.quiet,
 };
 
-// Classical models
 export const MODEL_COLORS = {
-  "Logistic Regression": "#2563eb",
-  "Random Forest": "#ea580c",
-  XGBoost: "#059669",
+  "Logistic Regression": "#6F7480",
+  "Random Forest": C.brand,
+  XGBoost: C.uplift,
 };
 
-// Backend action -> plain label + status color + icon + modern pills
+// Backend action -> plain label + tone (tones map to .tag-* classes)
 export const ACTION_STYLE = {
-  "Send retention offer": {
-    label: "Send the discount",
-    color: "#059669",
-    bg: "#ecfdf5",
-    border: "#a7f3d0",
-    icon: "✔",
-    tone: "good"
-  },
-  "No action needed": {
-    label: "No need, likely to stay",
-    color: "#475569",
-    bg: "#f8fafc",
-    border: "#e2e8f0",
-    icon: "–",
-    tone: "neutral"
-  },
-  "Try non-discount retention": {
-    label: "Call them instead",
-    color: "#d97706",
-    bg: "#fffbeb",
-    border: "#fde68a",
-    icon: "☎",
-    tone: "warning"
-  },
-  "Do not contact": {
-    label: "Don't contact",
-    color: "#e11d48",
-    bg: "#fff1f2",
-    border: "#fecdd3",
-    icon: "✖",
-    tone: "danger"
-  },
+  "Send retention offer": { label: "Send the discount", tone: "send", glyph: "tag" },
+  "Try non-discount retention": { label: "Call them instead", tone: "call", glyph: "phone" },
+  "No action needed": { label: "Leave them be", tone: "none", glyph: "check" },
+  "Do not contact": { label: "Don't contact", tone: "skip", glyph: "ban" },
+};
+export const ACTION_ORDER = ["Send retention offer", "Try non-discount retention", "No action needed", "Do not contact"];
+export const ACTION_FILL = {
+  "Send retention offer": C.offer,
+  "Try non-discount retention": C.hold,
+  "No action needed": "#4A4D57",
+  "Do not contact": "#8A8F9C",
 };
 
-// Risk levels
 export const RISK_STYLE = {
-  High: {
-    label: "High risk",
-    color: "#e11d48",
-    bg: "#fff1f2",
-    border: "#fecdd3",
-    icon: "▲",
-    badgeClass: "badge-danger"
-  },
-  Medium: {
-    label: "Medium risk",
-    color: "#d97706",
-    bg: "#fffbeb",
-    border: "#fde68a",
-    icon: "●",
-    badgeClass: "badge-warning"
-  },
-  Low: {
-    label: "Low risk",
-    color: "#059669",
-    bg: "#ecfdf5",
-    border: "#a7f3d0",
-    icon: "▼",
-    badgeClass: "badge-success"
-  },
+  High: { label: "High risk", tone: "high", color: C.drop },
+  Medium: { label: "Medium risk", tone: "medium", color: C.hold },
+  Low: { label: "Low risk", tone: "low", color: C.stay },
 };
 
-// Plain explanations of each action
+// What each action means, in the agent's words
 export const ACTION_HELP = {
-  "Send retention offer": "A $50 discount is likely to keep this customer, and preserving their lifetime value is worth significantly more than $50.",
-  "No action needed": "This customer has high organic loyalty and will likely stay anyway. Offering a discount would needlessly dilute revenue.",
-  "Try non-discount retention": "They are at risk of leaving, but a discount won't solve the core issue. Direct outreach or technical support resolution yields higher retention.",
-  "Do not contact": "Contacting this customer or sending an unsolicited offer may trigger a negative reaction or accelerate churn.",
+  "Send retention offer": "A $50 discount is likely to keep this customer, and a year of their bill is worth far more than $50.",
+  "No action needed": "This customer will most likely stay anyway. A discount would only cost money.",
+  "Try non-discount retention": "They might leave, but money isn't the fix. A call about service or support works better.",
+  "Do not contact": "Reaching out may remind them to cancel. Leave this account alone.",
 };
 
 export const pct = (v, d = 0) => `${(v * 100).toFixed(d)}%`;
 export const money = (v) =>
-  `${v < 0 ? "-" : ""}$${Math.abs(v).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  `${v < 0 ? "−" : ""}$${Math.abs(v).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+export const kmoney = (v) => `${v < 0 ? "−" : ""}$${Math.round(Math.abs(v) / 1000)}k`;
+export const num = (v) => Number(v).toLocaleString("en-US");
+export const initials = (name = "") => name.split(" ").map((p) => p[0]).join("").slice(0, 2);
+
+// Chance of staying -> tone
+export const stayTone = (v) => (v >= 0.7 ? "low" : v >= 0.4 ? "medium" : "high");

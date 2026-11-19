@@ -6,7 +6,7 @@ data users create while using the app:
   contacts     every time an agent contacts a customer (channel, outcome, note)
   predictions  every customer checked on the "Check a customer" page
 
-SQLite is a single file (backend/data/robic.db), built into Python, no server
+SQLite is a single file (backend/data/mydel.db), built into Python, no server
 needed. Swapping to PostgreSQL later would only change this file.
 """
 import json
@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DB_PATH = Path(os.getenv("DB_PATH", REPO_ROOT / "backend" / "data" / "robic.db"))
+DB_PATH = Path(os.getenv("DB_PATH", REPO_ROOT / "backend" / "data" / "mydel.db"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS contacts (

@@ -184,7 +184,7 @@ A: No, it's an honest result. In our simulation, the people the offer helps are 
 A: The model never saw the 20% test customers during training, and data scaling was learned from training data only.
 
 **Q: Where is the database? What does it store?**
-A: `backend/app/database.py` uses **SQLite** (one file, `backend/data/robic.db`, created automatically). The ML scores are read-only, so the database stores what *people* do with them: every contact an agent logs (channel, offer, outcome, note) and every customer checked on the predictor page. It has full create / read / update / delete endpoints (`/customers/{id}/contacts`, `/contacts/{id}`, `/contacts/stats`, `/predictions/history`). See them all at http://127.0.0.1:8000/docs.
+A: `backend/app/database.py` uses **SQLite** (one file, `backend/data/mydel.db`, created automatically). The ML scores are read-only, so the database stores what *people* do with them: every contact an agent logs (channel, offer, outcome, note) and every customer checked on the predictor page. It has full create / read / update / delete endpoints (`/customers/{id}/contacts`, `/contacts/{id}`, `/contacts/stats`, `/predictions/history`). See them all at http://127.0.0.1:8000/docs.
 
 **Q: What is your business recommendation?**
 A: Target the highest-risk customers first, about the top 40%. Skip anyone the uplift model says would react badly. Run a real A/B test before trusting uplift numbers.

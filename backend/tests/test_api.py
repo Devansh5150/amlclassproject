@@ -78,7 +78,7 @@ def test_customer_detail_and_404():
 
 def test_metrics_and_summary():
     m = client.get("/metrics").json()
-    assert {"classical", "uplift", "roi", "robic_roi"} <= m.keys()
+    assert {"classical", "uplift", "roi", "mydel_roi"} <= m.keys()
     assert m["uplift"]["simulated"] is True
     s = client.get("/summary").json()
     assert 0.65 < s["retention_rate"] < 0.8

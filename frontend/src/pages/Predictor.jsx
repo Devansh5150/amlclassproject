@@ -1,220 +1,121 @@
-import React, { useEffect, useState } from "react";
+// Check a customer (/predict): describe any customer and get a live churn score, uplift and action.
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
-import {
-  ActionBadge,
-  Card,
-  Details,
-  PageHeader,
-  SimulatedNote
-} from "../components/ui.jsx";
-import {
-  ZapIcon,
-  SparklesIcon,
-  CheckIcon,
-  AlertTriangleIcon,
-  DollarSignIcon
-} from "../components/icons.jsx";
+import { ActionBadge, Card, Details, PageHeader, SimulatedNote } from "../components/ui.jsx";
+import { Glyph, Signal } from "../components/kit.jsx";
 import { ACTION_HELP, ACTION_STYLE, money, pct } from "../theme.js";
 
-const YN = [
-  ["No", "No"],
-  ["Yes", "Yes"],
-];
+const YN = [["No", "No"], ["Yes", "Yes"]];
 
 const MAIN_FIELDS = [
-  ["tenure", "Tenure (Months Subscribed)"],
-  ["MonthlyCharges", "Monthly Recurring Charge ($)"],
-  [
-    "Contract",
-    "Contract Term",
-    [
-      ["Month-to-month", "Month-to-month"],
-      ["One year", "1-Year Term"],
-      ["Two year", "2-Year Term"],
-    ],
-  ],
-  [
-    "InternetService",
-    "Broadband Service",
-    [
-      ["Fiber optic", "Fiber Optic (Fast, higher tier)"],
-      ["DSL", "DSL (Standard)"],
-      ["No", "No Internet Service"],
-    ],
-  ],
-  [
-    "PaymentMethod",
-    "Payment / Billing Method",
-    [
-      ["Electronic check", "Electronic Check"],
-      ["Mailed check", "Mailed Check"],
-      ["Bank transfer (automatic)", "Automatic Bank Transfer"],
-      ["Credit card (automatic)", "Automatic Credit Card"],
-    ],
-  ],
-  ["TechSupport", "Tech Support Add-on", YN],
-  ["OnlineSecurity", "Cyber Security Add-on", YN],
+  ["tenure", "Months with myDel"],
+  ["MonthlyCharges", "Monthly bill ($)"],
+  ["Contract", "Contract", [["Month-to-month", "Month-to-month"], ["One year", "One year"], ["Two year", "Two year"]]],
+  ["InternetService", "Internet", [["Fiber optic", "Fiber optic"], ["DSL", "DSL"], ["No", "No internet"]]],
+  ["PaymentMethod", "Payment method", [
+    ["Electronic check", "Electronic check"], ["Mailed check", "Mailed check"],
+    ["Bank transfer (automatic)", "Bank transfer (automatic)"], ["Credit card (automatic)", "Credit card (automatic)"],
+  ]],
+  ["TechSupport", "Tech support", YN],
+  ["OnlineSecurity", "Online security", YN],
 ];
 
 const EXTRA_FIELDS = [
-  ["PaperlessBilling", "Paperless Billing", YN],
-  ["OnlineBackup", "Cloud Backup", YN],
-  ["DeviceProtection", "Device Protection Plan", YN],
-  ["StreamingTV", "Streaming TV Package", YN],
-  ["StreamingMovies", "Streaming Movies Package", YN],
-  ["PhoneService", "Voice / Phone Line", YN],
-  ["MultipleLines", "Multiple Phone Lines", YN],
-  ["Partner", "Has Partner", YN],
-  ["Dependents", "Has Children / Dependents", YN],
-  [
-    "SeniorCitizen",
-    "Senior Citizen (Age 65+)",
-    [
-      [0, "No"],
-      [1, "Yes"],
-    ],
-  ],
-  [
-    "gender",
-    "Subscriber Gender",
-    [
-      ["Female", "Female"],
-      ["Male", "Male"],
-    ],
-  ],
+  ["PaperlessBilling", "Paperless billing", YN],
+  ["OnlineBackup", "Online backup", YN],
+  ["DeviceProtection", "Device protection", YN],
+  ["StreamingTV", "Streaming TV", YN],
+  ["StreamingMovies", "Streaming movies", YN],
+  ["PhoneService", "Phone line", YN],
+  ["MultipleLines", "Multiple lines", YN],
+  ["Partner", "Has a partner", YN],
+  ["Dependents", "Has dependents", YN],
+  ["SeniorCitizen", "Senior citizen (65+)", [[0, "No"], [1, "Yes"]]],
+  ["gender", "Gender", [["Female", "Female"], ["Male", "Male"]]],
 ];
 
 const DEFAULTS = {
-  tenure: 3,
-  MonthlyCharges: 80,
-  Contract: "Month-to-month",
-  InternetService: "Fiber optic",
-  PaymentMethod: "Electronic check",
-  PaperlessBilling: "Yes",
-  OnlineSecurity: "No",
-  TechSupport: "No",
-  OnlineBackup: "No",
-  DeviceProtection: "No",
-  StreamingTV: "No",
-  StreamingMovies: "No",
-  PhoneService: "Yes",
-  MultipleLines: "No",
-  Partner: "No",
-  Dependents: "No",
-  SeniorCitizen: 0,
-  gender: "Female",
+  tenure: 3, MonthlyCharges: 80, Contract: "Month-to-month", InternetService: "Fiber optic",
+  PaymentMethod: "Electronic check", PaperlessBilling: "Yes", OnlineSecurity: "No", TechSupport: "No",
+  OnlineBackup: "No", DeviceProtection: "No", StreamingTV: "No", StreamingMovies: "No", PhoneService: "Yes",
+  MultipleLines: "No", Partner: "No", Dependents: "No", SeniorCitizen: 0, gender: "Female",
 };
 
 const PRESETS = {
-  "⚡ High-Risk New User": DEFAULTS,
-  "🛡️ Long-Tenure Loyalist": {
-    ...DEFAULTS,
-    tenure: 60,
-    MonthlyCharges: 55,
-    Contract: "Two year",
-    InternetService: "DSL",
-    PaymentMethod: "Credit card (automatic)",
-    PaperlessBilling: "No",
-    OnlineSecurity: "Yes",
-    TechSupport: "Yes",
-    Partner: "Yes",
+  "New, high risk": DEFAULTS,
+  "Long-time loyal": {
+    ...DEFAULTS, tenure: 60, MonthlyCharges: 55, Contract: "Two year", InternetService: "DSL",
+    PaymentMethod: "Credit card (automatic)", PaperlessBilling: "No", OnlineSecurity: "Yes", TechSupport: "Yes", Partner: "Yes",
   },
-  "💼 Family Bundle": {
-    ...DEFAULTS,
-    tenure: 24,
-    MonthlyCharges: 105,
-    Contract: "One year",
-    InternetService: "Fiber optic",
-    MultipleLines: "Yes",
-    Partner: "Yes",
-    Dependents: "Yes",
-    StreamingTV: "Yes",
-    StreamingMovies: "Yes",
-    TechSupport: "Yes",
-    PaymentMethod: "Bank transfer (automatic)",
+  "Family bundle": {
+    ...DEFAULTS, tenure: 24, MonthlyCharges: 105, Contract: "One year", InternetService: "Fiber optic", MultipleLines: "Yes",
+    Partner: "Yes", Dependents: "Yes", StreamingTV: "Yes", StreamingMovies: "Yes", TechSupport: "Yes", PaymentMethod: "Bank transfer (automatic)",
   },
 };
 
 function riskWords(p) {
-  if (p >= 0.6) return { text: "Critical Departure Risk", cls: "high", sub: "Highly likely to cancel service without intervention" };
-  if (p >= 0.3) return { text: "Moderate Churn Risk", cls: "medium", sub: "May defect if competitors offer promotional incentives" };
-  return { text: "Stable Account Retention", cls: "low", sub: "High organic retention probability" };
+  if (p >= 0.6) return { text: "Likely to leave", sub: "Without action, this customer will probably cancel." };
+  if (p >= 0.3) return { text: "Could go either way", sub: "A better offer from a competitor could tip them." };
+  return { text: "Likely to stay", sub: "This customer looks settled." };
 }
 
 export default function Predictor() {
   const [form, setForm] = useState(DEFAULTS);
-  const [activePreset, setActivePreset] = useState("⚡ High-Risk New User");
+  const [activePreset, setActivePreset] = useState("New, high risk");
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-
   const [history, setHistory] = useState([]);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const reqId = useRef(0);
 
-  const normalize = (values) => ({
-    ...values,
-    tenure: Number(values.tenure),
-    MonthlyCharges: Number(values.MonthlyCharges),
-    SeniorCitizen: Number(values.SeniorCitizen),
-  });
+  const normalize = (v) => ({ ...v, tenure: Number(v.tenure), MonthlyCharges: Number(v.MonthlyCharges), SeniorCitizen: Number(v.SeniorCitizen) });
 
   const loadHistory = () => api.predictionHistory().then((h) => setHistory(h.slice(0, 6))).catch(() => {});
-  useEffect(() => { loadHistory(); }, []);
-
-  // Store the current customer in the database (POST /predict?save=true)
-  async function saveCurrent() {
-    await api.predict(normalize(form), { save: true });
-    setSaved(true);
-    loadHistory();
-  }
-
-  function loadFromHistory(input) {
-    const next = { ...form, ...Object.fromEntries(Object.entries(input).filter(([k]) => k in form)) };
-    setActivePreset(null);
-    setForm(next);
-    run(next);
-  }
+  useEffect(() => { loadHistory(); run(DEFAULTS); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   async function run(values) {
+    const id = ++reqId.current;
     setError(null);
     setSaved(false);
     try {
       const res = await api.predict(normalize(values));
-      setResult(res);
+      if (id === reqId.current) setResult(res);
     } catch {
-      setError("Unable to score profile. Verify that the FastAPI backend is running.");
+      if (id === reqId.current) setError("Couldn't score this customer. Check the backend is running, then change any field to retry.");
     }
   }
 
-  const update = (name, value) => {
-    setActivePreset(null);
-    const next = { ...form, [name]: value };
+  async function saveCurrent() {
+    setSaving(true);
+    try {
+      await api.predict(normalize(form), { save: true });
+      setSaved(true);
+      loadHistory();
+    } catch {
+      setError("Not saved. Check the backend is running.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function apply(next, preset = null) {
+    setActivePreset(preset);
     setForm(next);
     run(next);
-  };
+  }
 
-  useEffect(() => {
-    run(DEFAULTS);
-  }, []);
+  const update = (name, value) => apply({ ...form, [name]: value });
 
   const field = ([name, label, options]) => (
-    <label key={name}>
+    <label key={name} className="field">
       <span>{label}</span>
       {options ? (
         <select value={form[name]} onChange={(e) => update(name, e.target.value)}>
-          {options.map(([v, l]) => (
-            <option key={v} value={v}>
-              {l}
-            </option>
-          ))}
+          {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       ) : (
-        <input
-          type="number"
-          min="0"
-          step="1"
-          value={form[name]}
-          onChange={(e) => update(name, e.target.value)}
-        />
+        <input type="number" min="0" step="1" inputMode="numeric" value={form[name]} onChange={(e) => update(name, e.target.value)} />
       )}
     </label>
   );
@@ -223,180 +124,89 @@ export default function Predictor() {
   const helps = result && result.uplift_score > 0;
 
   return (
-    <>
-      <PageHeader
-        badge="Real-Time Inference Engine"
-        title="Interactive Subscriber Simulator"
-      >
-        Configure arbitrary subscriber attributes and receive immediate machine learning churn predictions and causal action directives.
+    <div className="page">
+      <PageHeader title="Check a customer">
+        Describe a customer and the models score them as you type: how likely they are to leave, whether a discount would help, and what to do.
       </PageHeader>
 
-      <div className="grid2 predictor">
-        <div className="predictor-left">
-        <Card title="Account Profile & Plan Attributes">
-          <div className="presets-bar">
-            <span className="presets-label">Preset Profiles:</span>
-            {Object.entries(PRESETS).map(([name, p]) => (
-              <button
-                key={name}
-                type="button"
-                className={`preset-chip ${activePreset === name ? "primary" : ""}`}
-                onClick={() => {
-                  setActivePreset(name);
-                  setForm(p);
-                  run(p);
-                }}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-
-          <p className="note" style={{ marginTop: 0, marginBottom: "16px" }}>
-            ⚡ Machine learning scores re-evaluate dynamically in real time with each keystroke.
-          </p>
-
-          <div className="form-grid">{MAIN_FIELDS.map(field)}</div>
-
-          <Details title="Secondary Account & Demographic Attributes (Optional)">
-            <div className="form-grid">{EXTRA_FIELDS.map(field)}</div>
-          </Details>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
-            <button type="button" className="primary" onClick={saveCurrent} disabled={!result || saved}>
-              {saved ? "Saved to history" : "Save to history"}
-            </button>
-            <span className="muted" style={{ fontSize: 13 }}>Keeps this check in the database so you can come back to it.</span>
-          </div>
-        </Card>
-
-        <Card title="Recently checked" subtitle="Saved checks from the database. Select one to load it into the form.">
-          {history.length === 0 ? (
-            <p className="muted">Nothing saved yet. Adjust a customer above, then choose Save to history.</p>
-          ) : (
-            <ul className="history-list">
-              {history.map((h) => (
-                <li key={h.id} role="button" tabIndex={0} style={{ cursor: "pointer" }}
-                  onClick={() => loadFromHistory(h.input)}
-                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && loadFromHistory(h.input)}>
-                  <b>{h.input.Contract} · {h.input.tenure} months · ${Number(h.input.MonthlyCharges).toFixed(0)}/mo</b>
-                  <small>
-                    {(ACTION_STYLE[h.recommended_action] || {}).label || h.recommended_action} ·{" "}
-                    {new Date(h.created_at).toLocaleString()}
-                  </small>
-                  <span className="mono" title="Chance of staying">{pct(1 - h.churn_probability)}</span>
-                </li>
+      <div className="cols-2">
+        <div className="stack">
+          <Card title="The customer">
+            <div className="chips" role="group" aria-label="Start from an example" style={{ marginBottom: 20 }}>
+              {Object.entries(PRESETS).map(([name, p]) => (
+                <button key={name} type="button" className="chip" aria-pressed={activePreset === name} onClick={() => apply(p, name)}>
+                  {name}
+                </button>
               ))}
-            </ul>
-          )}
-        </Card>
+            </div>
+            <div className="form-grid">{MAIN_FIELDS.map(field)}</div>
+            <Details title="More details (optional)">
+              <div className="form-grid">{EXTRA_FIELDS.map(field)}</div>
+            </Details>
+            <div className="save-row">
+              <button type="button" className="btn btn-quiet" onClick={saveCurrent} disabled={!result || saved || saving}>
+                {saved ? <>{Glyph.check({ size: 16 })}Saved</> : saving ? "Saving…" : "Save this check"}
+              </button>
+              <span>Saved checks appear below so you can reload them later.</span>
+            </div>
+          </Card>
+
+          <Card title="Saved checks">
+            {history.length === 0 ? (
+              <p className="muted small">Nothing saved yet. Describe a customer above, then choose Save this check.</p>
+            ) : (
+              <ul className="history">
+                {history.map((h) => (
+                  <li key={h.id}>
+                    <button type="button" onClick={() => apply({ ...form, ...Object.fromEntries(Object.entries(h.input).filter(([k]) => k in form)) })}>
+                      <b>{h.input.Contract}, {h.input.tenure} months, ${Number(h.input.MonthlyCharges).toFixed(0)}/mo</b>
+                      <small>{(ACTION_STYLE[h.recommended_action] || {}).label || h.recommended_action}, {new Date(h.created_at).toLocaleString()}</small>
+                      <Signal value={1 - h.churn_probability} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         </div>
 
-        <div className="result-col">
-          {error && <div className="card error-card">{error}</div>}
+        <div className="sticky-col" aria-live="polite">
+          {error && <div className="error-panel" role="alert">{Glyph.alert({ size: 20 })}<p>{error}</p></div>}
           {result && (
-            <Card className="prediction-result-card" title="Machine Learning Inference Report">
-              <div className="prediction-box">
-                <div className="prediction-eyebrow">1. Churn Risk Probability</div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <div className={`prediction-big-text ${risk.cls}`}>
-                    {risk.text}
-                  </div>
-                  <span style={{ fontSize: "20px", fontWeight: 800 }}>
-                    {pct(result.churn_probability)}
-                  </span>
-                </div>
-                <div className="meter big">
-                  <div
-                    className={`meter-fill ${risk.cls}`}
-                    style={{ width: pct(result.churn_probability) }}
-                  />
-                </div>
-                <div className="muted" style={{ fontSize: "13px" }}>
-                  About <b>{Math.round(result.churn_probability * 10)} in 10</b> customers with this profile leave (calibrated model, based on historical churn).
-                </div>
+            <Card title="Result" className="result">
+              <div className="result-block">
+                <h3>Chance of staying</h3>
+                <Signal value={1 - result.churn_probability} size="lg" />
+                <p><b className="result-big" style={{ display: "block", color: "var(--ink)", marginBottom: 2 }}>{risk.text}</b>
+                  {risk.sub} About {Math.round(result.churn_probability * 10)} in 10 customers like this leave.</p>
               </div>
 
-              <div className="prediction-box">
-                <div className="prediction-eyebrow">2. Causal Uplift Sensitivity ($50 Discount)</div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    margin: "4px 0 8px",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "22px",
-                      fontWeight: 800,
-                      color: helps ? "#059669" : "#64748b",
-                    }}
-                  >
-                    {helps ? (result.uplift_score > 0.05 ? "High Treatment Lift" : "Marginal Lift") : "Zero Treatment Impact"}
-                  </span>
-                  {helps && (
-                    <span
-                      style={{
-                        background: "#ecfdf5",
-                        color: "#059669",
-                        border: "1px solid #a7f3d0",
-                        padding: "3px 8px",
-                        borderRadius: "6px",
-                        fontWeight: 700,
-                        fontSize: "12.5px",
-                      }}
-                    >
-                      +{Math.round(result.uplift_score * 100)}% Lift
-                    </span>
-                  )}
-                </div>
-                <div className="muted" style={{ fontSize: "13px" }}>
-                  {helps ? (
-                    <>
-                      Providing a $50 discount concession is estimated to reduce churn by approximately{" "}
-                      <b>{Math.round(result.uplift_score * 100)} percentage points</b>.
-                    </>
-                  ) : (
-                    "This account exhibits low elasticity to monetary discounting. Offering concessions would dilute margin without preventing departure."
-                  )}
-                </div>
-              </div>
-
-              <div className="prediction-box">
-                <div className="prediction-eyebrow">3. Optimal Prescribed Action</div>
-                <div style={{ margin: "8px 0 12px" }}>
-                  <ActionBadge action={result.recommended_action} large />
-                </div>
-                <p style={{ fontSize: "13.5px", lineHeight: "1.55", color: "var(--text-main)" }}>
-                  {ACTION_HELP[result.recommended_action]}
+              <div className="result-block">
+                <h3>Would a $50 discount help?</h3>
+                <p className="result-big" style={{ color: helps ? "var(--stay-ink)" : "var(--ink)", marginTop: 0 }}>
+                  {helps ? `Yes, by about ${Math.round(result.uplift_score * 100)} points` : "Not really"}
                 </p>
-                <div
-                  style={{
-                    marginTop: "12px",
-                    padding: "10px 14px",
-                    background: "var(--bg-subtle)",
-                    borderRadius: "8px",
-                    border: "1px solid var(--border)",
-                    fontSize: "13px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span className="muted">Estimated Annual Subscriber Value:</span>
-                  <b style={{ color: "var(--text-main)", fontSize: "15px" }}>
-                    {money(result.customer_value)} / year
-                  </b>
-                </div>
+                <p>
+                  {helps
+                    ? `The discount should cut their chance of leaving by about ${Math.round(result.uplift_score * 100)} percentage points.`
+                    : "Money doesn't change much for this customer. A discount would cost more than it saves."}
+                </p>
               </div>
 
+              <div className="result-block">
+                <h3>What to do</h3>
+                <ActionBadge action={result.recommended_action} large />
+                <p style={{ color: "var(--ink)" }}>{ACTION_HELP[result.recommended_action]}</p>
+                <div className="value-line">
+                  <span className="muted">Worth over a year</span>
+                  <b className="num">{money(result.customer_value)}</b>
+                </div>
+              </div>
               <SimulatedNote />
             </Card>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

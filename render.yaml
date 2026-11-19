@@ -2,7 +2,7 @@
 # Render dashboard -> New -> Blueprint -> pick this repo.
 services:
   - type: web
-    name: aircel-api
+    name: mydel-api
     runtime: python
     plan: free
     buildCommand: pip install -r backend/requirements.txt

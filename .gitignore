@@ -38,3 +38,4 @@ Thumbs.db
 
 # ---------- Local database (created automatically) ----------
 backend/data/*.db
+.design-backup/

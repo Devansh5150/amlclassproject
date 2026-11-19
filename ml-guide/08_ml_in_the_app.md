@@ -12,8 +12,8 @@
 | `ml/results/shap_importance.json` | train_classical.py | `/summary` → top drivers | Top 15 features |
 | `ml/results/uplift_metrics.json` | train_uplift.py | `/metrics` | Qini, saved-customer curves, segments |
 | `ml/results/roi_results.json` | business_roi.py | `/metrics` | Test-set profit table |
-| `ml/results/robic_roi.json` | score_customers.py | `/metrics` → overview + Profit Planner | Profit table for all customers |
-| `backend/data/robic_customers.csv` | score_customers.py | every customer page | 7,043 scored customers + reasons + fake names |
+| `ml/results/mydel_roi.json` | score_customers.py | `/metrics` → overview + Profit Planner | Profit table for all customers |
+| `backend/data/mydel_customers.csv` | score_customers.py | every customer page | 7,043 scored customers + reasons + fake names |
 
 ## Out-of-fold scoring (why the customer scores are honest)
 `score_customers.py` splits all customers into **5 folds**. Each fold is scored by models trained on the **other 4**. So no customer is ever scored by a model that saw them in training. Otherwise, scores on training customers would look unrealistically confident.
@@ -21,7 +21,7 @@
 ## Two ways a prediction is made
 | Situation | Where the number comes from |
 |---|---|
-| An existing customer's page (`/customers/{id}`) | Pre-computed out-of-fold score in `robic_customers.csv` |
+| An existing customer's page (`/customers/{id}`) | Pre-computed out-of-fold score in `mydel_customers.csv` |
 | "Check customer" form and what-if simulator (`POST /predict`) | **Live**: the saved model files score the inputs in about 0.1 s |
 
 ## A live prediction, step by step

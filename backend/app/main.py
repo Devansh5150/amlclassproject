@@ -1,11 +1,11 @@
 """
-FastAPI backend for the Aircel customer-retention demo.
-(Aircel is a FICTIONAL company; its customers are real anonymous IBM Telco records
+FastAPI backend for the myDel customer-retention demo.
+(myDel is a FICTIONAL company; its customers are real anonymous IBM Telco records
 with generated fake names.)
 
 Endpoints
   GET  /health                 is the API up and are models loaded?
-  GET  /summary                dashboard numbers for all Aircel customers
+  GET  /summary                dashboard numbers for all myDel customers
   GET  /customers              customer list: search, filter, sort, pages
   GET  /customers/{id}         one customer: chance of staying, reasons, action
   POST /predict                score any customer details -> churn prob, uplift, action
@@ -35,9 +35,9 @@ from .model_service import ModelService
 from .schemas import Contact, ContactCreate, ContactUpdate, CustomerFeatures, Outcome, PredictionResponse
 
 app = FastAPI(
-    title="Aircel Retention API",
+    title="myDel Retention API",
     description="Customer churn prediction with a simple uplift extension for the fictional "
-                "company Aircel. Uplift results use SIMULATED retention-offer data.",
+                "company myDel. Uplift results use SIMULATED retention-offer data.",
     version="2.0.0",
 )
 
@@ -79,7 +79,7 @@ def customers(
     limit: int = Query(25, ge=1, le=10000),
     offset: int = Query(0, ge=0),
 ):
-    """Aircel's customers. Default: most at-risk first."""
+    """myDel's customers. Default: most at-risk first."""
     return service.list_customers(q, risk, contract, action, sort_by, descending, limit, offset)
 
 
@@ -107,7 +107,7 @@ def metrics():
         "classical": service.classical,
         "uplift": service.uplift_metrics,
         "roi": service.roi,              # test-set ROI (Phase 5, in the README)
-        "robic_roi": service.robic_roi,  # same method on all Aircel customers (used by the app)
+        "mydel_roi": service.mydel_roi,  # same method on all myDel customers (used by the app)
     }
 
 

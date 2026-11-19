@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { ACTION_STYLE, RISK_STYLE, pct } from "../theme.js";
+import { ACTION_STYLE, RISK_STYLE } from "../theme.js";
 import { API_URL } from "../api.js";
-import {
-  SparklesIcon,
-  AlertTriangleIcon,
-  InfoIcon,
-  ChevronRightIcon,
-  RefreshCwIcon,
-  ShieldCheckIcon
-} from "./icons.jsx";
+import { Glyph, Signal } from "./kit.jsx";
 
 // Load data from the API; re-runs when `deps` change. Returns { data, error, loading }.
 export function useApi(fn, deps = []) {
@@ -20,19 +13,8 @@ export function useApi(fn, deps = []) {
     let alive = true;
     setLoading(true);
     fn()
-      .then((d) => {
-        if (alive) {
-          setData(d);
-          setError(null);
-          setLoading(false);
-        }
-      })
-      .catch((e) => {
-        if (alive) {
-          setError(e.message);
-          setLoading(false);
-        }
-      });
+      .then((d) => { if (alive) { setData(d); setError(null); setLoading(false); } })
+      .catch((e) => { if (alive) { setError(e.message); setLoading(false); } });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
@@ -40,182 +22,109 @@ export function useApi(fn, deps = []) {
   return { data, error, loading };
 }
 
-export function Loading({ error }) {
+export function Loading({ error, label = "Loading customers…" }) {
   if (error) {
     return (
-      <div className="card error-card">
-        <div className="error-icon-box">
-          <AlertTriangleIcon size={20} />
-        </div>
+      <div className="error-panel" role="alert">
+        {Glyph.alert({ size: 20 })}
         <div>
-          <h4>Can't reach the backend</h4>
+          <h2>The backend isn't answering</h2>
           <p>
-            This page expects the FastAPI backend at <code>{API_URL}</code>. Start it with <code>start.bat</code>,
-            then refresh. If another app is using that port, close it first.
+            This page reads from the API at <code>{API_URL}</code>. Start it with <code>start.bat</code>, then
+            refresh. If another app is using port 8000, close that app first.
           </p>
         </div>
       </div>
     );
   }
   return (
-    <div className="loading-state">
-      <div className="spinner"></div>
-      <p className="loading-text">Analyzing customer portfolio…</p>
+    <div className="loading" role="status">
+      <span className="loading-bars" aria-hidden="true"><i /><i /><i /></span>
+      <span>{label}</span>
     </div>
   );
 }
 
-export function Stat({ label, value, note, tone, icon: IconComponent }) {
+// A figure in a row of facts (no card chrome; rows are divided by rules)
+export function Fact({ label, value, note, tone }) {
   return (
-    <div className={`stat-card ${tone ? `stat-${tone}` : ""}`}>
-      <div className="stat-card-top">
-        <span className="stat-label">{label}</span>
-        {IconComponent && (
-          <div className="stat-icon-wrapper">
-            <IconComponent size={18} />
-          </div>
-        )}
-      </div>
-      <div className={`stat-value ${tone || ""}`}>{value}</div>
-      {note && <div className="stat-note">{note}</div>}
+    <div className={`fact ${tone ? `fact-${tone}` : ""}`}>
+      <dt>{label}</dt>
+      <dd className="num">{value}</dd>
+      {note && <dd className="fact-note">{note}</dd>}
     </div>
   );
 }
+export function Facts({ children, label }) {
+  return <dl className="facts" aria-label={label}>{children}</dl>;
+}
 
-export function Card({ title, subtitle, children, action, className = "" }) {
+export function Card({ title, subtitle, children, action, className = "", as: Tag = "section" }) {
   return (
-    <section className={`card ${className}`}>
+    <Tag className={`panel ${className}`}>
       {(title || subtitle || action) && (
-        <div className="card-head">
+        <header className="panel-head">
           <div>
-            {title && <h3>{title}</h3>}
-            {subtitle && <p className="subtitle">{subtitle}</p>}
+            {title && <h2>{title}</h2>}
+            {subtitle && <p className="panel-sub">{subtitle}</p>}
           </div>
-          {action && <div className="card-head-action">{action}</div>}
-        </div>
+          {action && <div className="panel-action">{action}</div>}
+        </header>
       )}
-      <div className="card-content">{children}</div>
-    </section>
+      {children}
+    </Tag>
   );
 }
 
-export function PageHeader({ title, children, right, badge }) {
+export function PageHeader({ title, children, right }) {
   return (
-    <div className="page-header">
-      <div className="page-header-content">
-        {badge && <div className="page-badge">{badge}</div>}
-        <h1 className="page-title">{title}</h1>
+    <header className="page-head">
+      <div>
+        <h1>{title}</h1>
         {children && <p className="lead">{children}</p>}
       </div>
-      {right && <div className="page-header-right">{right}</div>}
-    </div>
+      {right && <div className="page-head-right">{right}</div>}
+    </header>
   );
 }
 
 export function KeyMessage({ children }) {
-  return (
-    <div className="key-message">
-      <div className="key-message-icon">
-        <SparklesIcon size={18} />
-      </div>
-      <div className="key-message-body">{children}</div>
-    </div>
-  );
+  return <p className="key-message">{children}</p>;
 }
 
 export function ActionBadge({ action, large }) {
-  const s = ACTION_STYLE[action] || {
-    label: action,
-    color: "#475569",
-    bg: "#f1f5f9",
-    border: "#cbd5e1",
-    icon: "•",
-  };
+  const s = ACTION_STYLE[action] || { label: action, tone: "none", glyph: "info" };
   return (
-    <span
-      className={`badge badge-action ${large ? "large" : ""}`}
-      style={{
-        color: s.color,
-        backgroundColor: s.bg,
-        borderColor: s.border,
-      }}
-    >
-      <span className="badge-icon">{s.icon}</span>
-      <span className="badge-text">{s.label}</span>
+    <span className={`tag tag-${s.tone} ${large ? "tag-lg" : ""}`}>
+      {Glyph[s.glyph]({ size: large ? 16 : 13, sw: 2.2 })}
+      {s.label}
     </span>
   );
 }
 
 export function RiskBadge({ level }) {
-  const s = RISK_STYLE[level] || {
-    label: level,
-    color: "#64748b",
-    bg: "#f1f5f9",
-    border: "#cbd5e1",
-    icon: "•",
-  };
-  return (
-    <span
-      className="badge badge-risk"
-      style={{
-        color: s.color,
-        backgroundColor: s.bg,
-        borderColor: s.border,
-      }}
-    >
-      <span className="badge-icon">{s.icon}</span>
-      <span className="badge-text">{s.label}</span>
-    </span>
-  );
+  const s = RISK_STYLE[level] || { label: level, tone: "medium" };
+  return <span className={`tag tag-risk-${s.tone}`}>{s.label}</span>;
 }
 
-// "Chance of staying" as a number + sleek progress bar
+// Back-compat name: chance of staying
 export function StayBar({ value }) {
-  const color =
-    value >= 0.7
-      ? "#059669"
-      : value >= 0.4
-      ? "#d97706"
-      : "#e11d48";
-
-  const textColor =
-    value >= 0.7 ? "#059669" : value >= 0.4 ? "#d97706" : "#e11d48";
-
-  return (
-    <div className="staybar">
-      <span className="staybar-value" style={{ color: textColor }}>
-        {pct(value)}
-      </span>
-      <div className="staybar-track">
-        <div
-          className="staybar-fill"
-          style={{ width: pct(value), background: color }}
-        />
-      </div>
-    </div>
-  );
+  return <Signal value={value} />;
 }
 
 export function SimulatedNote() {
   return (
-    <div className="sim-note-box">
-      <InfoIcon size={15} className="sim-note-icon" />
-      <span className="sim-note-text">
-        Aircel has no record of past discounts, so the discount's effect is an{" "}
-        <b>estimate based on a simulated uplift trial</b>. Treat these figures as a strategic guide.
-      </span>
-    </div>
+    <p className="sim-note">
+      {Glyph.info({ size: 15 })}
+      <span>Discount effects are estimates from a simulated trial, not a real campaign.</span>
+    </p>
   );
 }
 
-export function Details({ title = "Technical details & Methodology", children }) {
-  const [open, setOpen] = useState(false);
+export function Details({ title = "How this was measured", children }) {
   return (
-    <details className="details" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
-      <summary>
-        <span className="summary-title">{title}</span>
-        <ChevronRightIcon size={16} className={`summary-arrow ${open ? "rotated" : ""}`} />
-      </summary>
+    <details className="details">
+      <summary>{Glyph.right({ size: 16 })}<span>{title}</span></summary>
       <div className="details-body">{children}</div>
     </details>
   );
@@ -223,13 +132,43 @@ export function Details({ title = "Technical details & Methodology", children })
 
 export function Legend({ items }) {
   return (
-    <div className="legend">
-      {items.map(([label, color]) => (
-        <span key={label} className="legend-item">
-          <i style={{ background: color }} />
-          <span>{label}</span>
-        </span>
+    <ul className="legend">
+      {items.map(([label, color, dashed]) => (
+        <li key={label}>
+          <i style={{ background: dashed ? "none" : color, borderColor: color }} className={dashed ? "dashed" : ""} />
+          {label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function ChartTip({ active, payload, label, title, fmt = (v) => v }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tip">
+      <b>{title ? title(label) : label}</b>
+      {payload.map((p) => (
+        <div key={p.dataKey}>
+          <i style={{ background: p.color || p.fill }} />
+          <span>{p.name}</span>
+          <span className="num">{fmt(p.value)}</span>
+        </div>
       ))}
     </div>
+  );
+}
+
+export function Pager({ page, pages, onPage }) {
+  return (
+    <nav className="pager" aria-label="Pages">
+      <button type="button" className="btn btn-quiet" disabled={page === 0} onClick={() => onPage(page - 1)}>
+        {Glyph.left({ size: 16 })} Previous
+      </button>
+      <span className="num">Page {page + 1} of {pages}</span>
+      <button type="button" className="btn btn-quiet" disabled={page + 1 >= pages} onClick={() => onPage(page + 1)}>
+        Next {Glyph.right({ size: 16 })}
+      </button>
+    </nav>
   );
 }

@@ -1,4 +1,4 @@
-# Robic Customer Retention: Project Brief for Frontend Design
+# myDel Customer Retention: Project Brief for Frontend Design
 
 This document is the brief for designing new frontend screens. It describes **what the product does, who uses it, what every screen must show, what data the backend gives you, and the rules a design must respect**. You don't need to read any code to design from it.
 
@@ -8,7 +8,7 @@ This document is the brief for designing new frontend screens. It describes **wh
 
 ## 1. The product in one paragraph
 
-**Robic** is a fictional phone and internet company with **7,043 customers**. The customer records are real but anonymous (IBM Telco dataset), and the names are generated. About **1 in 4 customers leave** ("churn") each period. Robic can offer a customer a **$50 retention discount**, but giving it to everyone wastes money. The app uses two machine-learning models to answer one question:
+**myDel** is a fictional phone and internet company with **7,043 customers**. The customer records are real but anonymous (IBM Telco dataset), and the names are generated. About **1 in 4 customers leave** ("churn") each period. myDel can offer a customer a **$50 retention discount**, but giving it to everyone wastes money. The app uses two machine-learning models to answer one question:
 
 > **Which customers should we contact, and what should we offer them?**
 
@@ -89,11 +89,11 @@ The dataset has **no record of who received a discount**, so the discount experi
 
 ## 5. Screens (current information architecture)
 
-Top bar: **logo (Robic, "Customer Retention")** · **persona switcher** · nav: 🏠 Overview · 📞 Who to Call · 💰 Profit Planner · 🔍 Check Customer · **Export CSV** button.
+Top bar: **logo (myDel, "Customer Retention")** · **persona switcher** · nav: 🏠 Overview · 📞 Who to Call · 💰 Profit Planner · 🔍 Check Customer · **Export CSV** button.
 
 | Route | Screen | Purpose | Must contain |
 |---|---|---|---|
-| `/` | **Overview** (changes per persona) | Landing page | *Manager:* "How is Robic doing today?" hero, KPIs, retention by contract / internet / payment / tenure, top 10 at-risk accounts, high-value accounts to rescue. *Agent:* call queue + selected-customer panel with diagnosis, script, $50 offer button, outcome logging, notes. *Data scientist:* model leaderboard, metric benchmark, top-20% budget comparison, gain curve, CV stability, uplift segment breakdown |
+| `/` | **Overview** (changes per persona) | Landing page | *Manager:* "How is myDel doing today?" hero, KPIs, retention by contract / internet / payment / tenure, top 10 at-risk accounts, high-value accounts to rescue. *Agent:* call queue + selected-customer panel with diagnosis, script, $50 offer button, outcome logging, notes. *Data scientist:* model leaderboard, metric benchmark, top-20% budget comparison, gain curve, CV stability, uplift segment breakdown |
 | `/customers` | **Who to Call**: customer directory | Find and filter customers | Search (name / ID), filters (risk, contract, action), sortable columns, pagination, risk badge, action badge, chance-of-staying bar. Row click opens detail |
 | `/customers/:id` | **Customer detail** | Everything about one customer | Identity (name, initials avatar, ID, region, customer since, tenure), chance of staying (big number + meter), monthly bill / annual value / lifetime spend, recommended action + explanation, uplift statement ("discount raises retention by +X pts"), risk factors vs loyalty anchors, **Contact Log** (database), **What-If simulator** (live re-scoring), services grid |
 | `/campaign` | **Profit Planner** | Decide campaign size | Slider (% of customers to contact), sort method toggle, KPI tiles (concessions, budget, net profit), profit curve comparing 3 methods, prioritised call list with pagination |
@@ -153,7 +153,7 @@ uplift:     simulated: true, note, chosen_uplift_model, cv_qini_train,
             methods{name: qini_auc, observed_uplift_at_20, true_saved_top20, segments_top20{type: n}},
             qini_curves, gain_curves{method: [{pct, saved}]}, uplift_by_decile, best_possible_saved_top20
 roi:        test-set profit table
-robic_roi:  simulated, customers, assumptions{offer_cost, clv_months},
+mydel_roi:  simulated, customers, assumptions{offer_cost, clv_months},
             table: [{method, percent, contacted, customers_saved, cost, value_saved, profit, roi}]
             methods: "Churn risk" | "Uplift (T-learner)" | "Random"; percent 10…100
 ```
@@ -244,6 +244,6 @@ Campaign maths: contacting the top *N%* costs `N% × customers × $50`; profit =
 
 Paste sections 1–5 and 8 and say what you want, for example:
 
-> *"Design a new Overview screen for the Manager persona of Robic, a customer-retention app. Use the data in `GET /summary`, the colour tokens and principles in §8, keep the simulation disclaimer, and make the 'revenue at risk' and 'top accounts to rescue' the focal point. Desktop 1440 px."*
+> *"Design a new Overview screen for the Manager persona of myDel, a customer-retention app. Use the data in `GET /summary`, the colour tokens and principles in §8, keep the simulation disclaimer, and make the 'revenue at risk' and 'top accounts to rescue' the focal point. Desktop 1440 px."*
 
 Then hand the result to the developer with the endpoint fields from §6. Every design element should map to a field listed there.

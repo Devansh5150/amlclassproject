@@ -38,7 +38,7 @@ Charts: [shap_bar.png](../ml/results/figures/shap_bar.png) (importance), [shap_b
 1. Compute SHAP for all 7,043 customers.
 2. **Add up the one-hot pieces** so each original column gets one number (e.g. all `Contract_*` columns → "Contract").
 3. Top 3 positive contributions → **reasons to leave**; top 3 negative → **reasons to stay** (ignoring tiny ones < 0.005, and ignoring gender).
-4. Describe each in words, e.g. *"Month-to-month contract (can leave any time)"*, *"New customer (only 4 months with Robic)"*.
+4. Describe each in words, e.g. *"Month-to-month contract (can leave any time)"*, *"New customer (only 4 months with myDel)"*.
 
 These appear on each customer's page as "risk factors" and "loyalty anchors".
 

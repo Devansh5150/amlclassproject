@@ -1,292 +1,181 @@
 // Manager overview (/manager). Every number comes from the API:
-// GET /summary (customers, risk, actions, churn drivers) and GET /metrics (campaign profit table).
+// GET /summary (counts, churn drivers), GET /metrics (campaign profit table), GET /customers (the collections).
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
-  CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ReferenceLine,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  CartesianGrid, Line, LineChart, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { api } from "../api.js";
-import { Loading, useApi } from "../components/ui.jsx";
-import { IconTile, SimulationBanner } from "../components/kit.jsx";
-
-const RISK = [
-  { key: "High", label: "High risk", color: "#E11D48", mark: "▲" },
-  { key: "Medium", label: "Medium risk", color: "#D97706", mark: "●" },
-  { key: "Low", label: "Low risk", color: "#059669", mark: "▼" },
-];
-
-const ACTIONS = [
-  { key: "Send retention offer", label: "Send the discount", icon: "tag", tone: "emerald" },
-  { key: "Try non-discount retention", label: "Call them instead", icon: "phone", tone: "amber" },
-  { key: "No action needed", label: "No need, likely to stay", icon: "check", tone: "slate" },
-  { key: "Do not contact", label: "Don't contact", icon: "ban", tone: "rose" },
-];
+import { ChartTip, Loading, useApi } from "../components/ui.jsx";
+import { Glyph, SimulationBanner } from "../components/kit.jsx";
+import CustomerCard, { Collection } from "../components/CustomerCard.jsx";
+import { ACTION_ORDER, ACTION_STYLE, AXIS, C, RISK_STYLE, kmoney, num, pct } from "../theme.js";
 
 const METHODS = [
-  { key: "Churn risk", label: "Churn risk", color: "#2563EB" },
-  { key: "Uplift (T-learner)", label: "Uplift model", color: "#EA580C" },
-  { key: "Random", label: "Random", color: "#94A3B8" },
+  { key: "Churn risk", label: "Most likely to leave", color: C.brand, width: 3 },
+  { key: "Uplift (T-learner)", label: "Most likely to respond", color: C.uplift, width: 2.25 },
+  { key: "Random", label: "Random picks", color: C.quiet, width: 2, dash: "5 5" },
 ];
 
-const k = (v) => `${v < 0 ? "−" : ""}$${Math.round(Math.abs(v) / 1000)}k`;
-const pc = (v, d = 0) => `${(v * 100).toFixed(d)}%`;
-const n = (v) => v.toLocaleString("en-US");
-const initials = (name) => name.split(" ").map((p) => p[0]).join("");
+const COLLECTIONS = [
+  { key: "first", title: "Call these first", sub: "Lowest chance of staying", params: { sort_by: "churn_prob" }, more: "/customers" },
+  { key: "wins", title: "Easy wins", sub: "The $50 discount helps these customers most", params: { sort_by: "uplift_score", action: "Send retention offer" }, more: "/customers?action=Send%20retention%20offer" },
+  { key: "big", title: "Big bills at risk", sub: "High risk, highest monthly bill", params: { sort_by: "MonthlyCharges", risk: "High" }, more: "/customers?risk=High&sort=MonthlyCharges" },
+  { key: "alone", title: "Leave these alone", sub: "Contacting them makes leaving more likely", params: { sort_by: "churn_prob", action: "Do not contact" }, more: "/customers?action=Do%20not%20contact" },
+];
 
-function greeting() {
-  const h = new Date().getHours();
-  return h < 12 ? "Good morning!" : h < 17 ? "Good afternoon!" : "Good evening!";
-}
-
-// Churn rate (1 - retention) for one group of a /summary breakdown
 const churnOf = (rows, group) => 1 - (rows.find((r) => r.group === group)?.retention ?? 1);
 
-function ProfitTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
+function CollectionRow({ spec }) {
+  const { data, error } = useApi(() => api.customers({ ...spec.params, limit: 10 }));
   return (
-    <div className="ax-tooltip">
-      <b>{label}% of customers contacted</b>
-      {payload.map((p) => (
-        <div key={p.dataKey}>
-          <i style={{ background: p.color }} />
-          {METHODS.find((m) => m.key === p.dataKey).label}
-          <span className="mono">{k(p.value)}</span>
-        </div>
-      ))}
-    </div>
+    <Collection title={spec.title} sub={spec.sub}
+      action={<Link to={spec.more} className="link">See all {Glyph.right({ size: 14 })}</Link>}>
+      {!data ? (
+        error ? <p className="muted small">Couldn't load this list.</p>
+          : Array.from({ length: 5 }, (_, i) => <span key={i} className="ccard ccard-skeleton" aria-hidden="true" />)
+      ) : data.items.map((c) => <CustomerCard key={c.customerID} c={c} />)}
+    </Collection>
   );
 }
 
 export default function ManagerOverview() {
-  const navigate = useNavigate();
   const { data: s, error } = useApi(api.summary);
   const { data: m, error: mError } = useApi(api.metrics);
   if (!s || !m) return <Loading error={error || mError} />;
 
-  // ---- campaign profit table -> one row per contact percentage
-  const table = m.robic_roi.table;
+  const table = m.mydel_roi.table;
   const percents = [...new Set(table.map((r) => r.percent))].sort((a, b) => a - b);
   const curve = percents.map((p) => {
     const row = { percent: p };
-    METHODS.forEach(({ key }) => {
-      row[key] = table.find((r) => r.method === key && r.percent === p)?.profit ?? null;
-    });
+    METHODS.forEach(({ key }) => { row[key] = table.find((r) => r.method === key && r.percent === p)?.profit ?? null; });
     return row;
   });
   const peakOf = (key) => table.filter((r) => r.method === key).reduce((a, b) => (b.profit > a.profit ? b : a));
   const best = peakOf("Churn risk");
   const upliftPeak = peakOf("Uplift (T-learner)");
-  const randomPeak = peakOf("Random");
-  const at20 = table.find((r) => r.method === "Churn risk" && r.percent === 20);
-
-  // ---- why customers leave (live churn rates from /summary)
-  const autoPay = Math.min(
-    churnOf(s.retention_by_payment, "Bank transfer (automatic)"),
-    churnOf(s.retention_by_payment, "Credit card (automatic)"),
-  );
-  const reasons = [
-    { icon: "calendar", title: "Month-to-month contract",
-      text: `${pc(churnOf(s.retention_by_contract, "Month-to-month"))} leave vs ${pc(churnOf(s.retention_by_contract, "Two year"))} on 2-year` },
-    { icon: "hourglass", title: "Short tenure",
-      text: `${pc(churnOf(s.retention_by_tenure, "0-6 months"))} leave in the first 6 months vs ${pc(churnOf(s.retention_by_tenure, "4+ years"))} after 4 years` },
-    { icon: "wifi", title: "Fiber-optic internet",
-      text: `${pc(churnOf(s.retention_by_internet, "Fiber optic"))} leave vs ${pc(churnOf(s.retention_by_internet, "DSL"))} on DSL` },
-    { icon: "card", title: "Electronic-check payment",
-      text: `${pc(churnOf(s.retention_by_payment, "Electronic check"))} leave vs ${pc(autoPay)} on auto-pay` },
-    { icon: "headset", title: "No tech support", text: "31% leave vs 15% with tech support" },
-    { icon: "stack", title: "High bills", text: "Higher monthly bills go with higher churn" },
-  ];
-
-  const riskData = RISK.map((r) => ({ ...r, value: s.risk_counts[r.key] }));
+  const offer = m.mydel_roi.assumptions.offer_cost;
   const total = s.n_customers;
 
+  const autoPay = Math.min(churnOf(s.retention_by_payment, "Bank transfer (automatic)"), churnOf(s.retention_by_payment, "Credit card (automatic)"));
+  const reasons = [
+    { risky: "Month-to-month contract", a: churnOf(s.retention_by_contract, "Month-to-month"), safe: "on a two-year contract", b: churnOf(s.retention_by_contract, "Two year") },
+    { risky: "In their first 6 months", a: churnOf(s.retention_by_tenure, "0-6 months"), safe: "after 4 years", b: churnOf(s.retention_by_tenure, "4+ years") },
+    { risky: "Pays by electronic check", a: churnOf(s.retention_by_payment, "Electronic check"), safe: "paying automatically", b: autoPay },
+    { risky: "Fiber-optic internet", a: churnOf(s.retention_by_internet, "Fiber optic"), safe: "on DSL", b: churnOf(s.retention_by_internet, "DSL") },
+  ];
+
   return (
-    <div className="ov">
-      <div className="ov-main">
-        {/* ---------- welcome ---------- */}
-        <header className="ov-hero ax-raised">
-          <div className="ov-hero-text">
-            <h1>{greeting()} <span aria-hidden="true">👋</span></h1>
-            <p>Here's your retention snapshot for <b className="mono">{n(total)}</b> customers.</p>
+    <div className="page page-manager">
+      {/* ---------- banner ---------- */}
+      <section className="banner" aria-labelledby="verdict">
+        <div className="banner-copy">
+          <h1 id="verdict">Contact the {best.percent}% most likely to leave and make {kmoney(best.profit)}</h1>
+          <p>
+            A ${offer} offer to {num(best.contacted)} of {num(total)} customers pays for itself many times over within a year.
+            Contact more than that and the extra offers mostly go to people who'd have stayed anyway.
+          </p>
+          <div className="banner-actions">
+            <Link to="/campaign" className="btn btn-primary">Plan the campaign</Link>
+            <Link to="/customers" className="btn btn-quiet">Browse customers</Link>
           </div>
-        </header>
-
-        {/* ---------- KPIs ---------- */}
-        <section className="ov-kpis" aria-label="Key figures">
-          {[
-            { icon: "users", tone: "lavender", value: n(total), label: "Total customers" },
-            { icon: "heart", tone: "rose", value: pc(s.retention_rate, 1), label: "Retention rate" },
-            { icon: "coins", tone: "amber", value: k(s.monthly_revenue), label: "Monthly revenue" },
-            { icon: "alert", tone: "rose", value: k(s.monthly_revenue_at_risk), label: "Revenue at risk", note: "from high-risk customers" },
-          ].map((c) => (
-            <article key={c.label} className="kpi ax-raised ax-hover">
-              <IconTile name={c.icon} tone={c.tone} size={58} glyph={26} />
-              <div>
-                <div className="kpi-value mono">{c.value}</div>
-                <div className="kpi-label">{c.label}</div>
-                {c.note && <div className="kpi-note">{c.note}</div>}
-              </div>
-            </article>
-          ))}
-        </section>
-
-        <div className="ov-row ov-row-a">
-          {/* ---------- risk donut ---------- */}
-          <section className="ax-raised panel">
-            <h2 className="panel-title">Customer risk distribution</h2>
-            <div className="risk-body">
-              <div className="donut ax-recessed">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={riskData} dataKey="value" nameKey="label" innerRadius="70%" outerRadius="94%"
-                      startAngle={90} endAngle={-270} paddingAngle={2} cornerRadius={6} stroke="none" isAnimationActive={false}>
-                      {riskData.map((r) => <Cell key={r.key} fill={r.color} />)}
-                    </Pie>
-                    <Tooltip formatter={(v, name) => [`${n(v)} (${pc(v / total, 1)})`, name]} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="donut-center">
-                  <b className="mono">{n(total)}</b>
-                  <span>customers</span>
-                </div>
-              </div>
-              <ul className="risk-legend">
-                {riskData.map((r) => (
-                  <li key={r.key}>
-                    <button type="button" onClick={() => navigate(`/customers?risk=${r.key}`)}>
-                      <span className="risk-mark" style={{ color: r.color }} aria-hidden="true">{r.mark}</span>
-                      <span className="risk-name">{r.label}</span>
-                      <span className="mono risk-n">{n(r.value)}</span>
-                      <span className="mono muted">({pc(r.value / total, 1)})</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {/* ---------- actions ---------- */}
-          <section className="ax-raised panel">
-            <h2 className="panel-title">Recommended actions <span className="muted">(all customers)</span></h2>
-            <div className="action-tiles">
-              {ACTIONS.map((a) => (
-                <button key={a.key} type="button" className={`action-tile tone-${a.tone} ax-hover`}
-                  onClick={() => navigate(`/customers?action=${encodeURIComponent(a.key)}`)}>
-                  <IconTile name={a.icon} tone={a.tone} size={40} glyph={20} />
-                  <b className="mono">{n(s.action_counts[a.key] || 0)}</b>
-                  <span>{a.label}</span>
-                </button>
+        </div>
+        <figure className="banner-chart">
+          <figcaption>
+            <b>Profit by share of customers contacted</b>
+            <ul className="legend">
+              {METHODS.map((mt) => (
+                <li key={mt.key}><i style={{ borderColor: mt.color }} className={mt.dash ? "dashed" : ""} />{mt.label}</li>
               ))}
-            </div>
-          </section>
-        </div>
+            </ul>
+          </figcaption>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={curve} margin={{ top: 26, right: 14, left: 0, bottom: 0 }}>
+              <CartesianGrid stroke={C.grid} vertical={false} />
+              <XAxis dataKey="percent" tickFormatter={(v) => `${v}%`} tick={AXIS} axisLine={{ stroke: C.rule }} tickLine={false} />
+              <YAxis tickFormatter={kmoney} tick={AXIS} axisLine={false} tickLine={false} width={52} />
+              <ReferenceLine y={0} stroke={C.rule} className="ref-zero" />
+              <Tooltip content={<ChartTip title={(l) => `Contact ${l}% of customers`} fmt={kmoney} />} />
+              <ReferenceLine x={best.percent} stroke={C.ink} strokeDasharray="2 4"
+                label={{ value: `Peak ${kmoney(best.profit)}`, position: "top", fill: C.ink, fontSize: 12, fontWeight: 800 }} />
+              {METHODS.map((mt) => (
+                <Line key={mt.key} name={mt.label} type="monotone" dataKey={mt.key} stroke={mt.color} strokeWidth={mt.width}
+                  strokeDasharray={mt.dash} dot={false} activeDot={{ r: 5, strokeWidth: 0 }} isAnimationActive={false} />
+              ))}
+              <ReferenceDot x={best.percent} y={best.profit} r={6} fill={C.brand} stroke="#fff" strokeWidth={2.5} />
+            </LineChart>
+          </ResponsiveContainer>
+          <p className="chart-foot">Ranking by uplift peaks a little lower, at <b>{kmoney(upliftPeak.profit)}</b>.</p>
+        </figure>
+      </section>
 
-        <div className="ov-row ov-row-b">
-          {/* ---------- profit simulation ---------- */}
-          <section className="ax-raised panel">
-            <div className="panel-head">
-              <h2 className="panel-title">Campaign profit simulation</h2>
-              <ul className="line-legend">
-                {METHODS.map((mt) => (
-                  <li key={mt.key}><i style={{ background: mt.color }} />{mt.label}{mt.key === "Churn risk" && " (best)"}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="chart-well ax-recessed">
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={curve} margin={{ top: 34, right: 18, left: 4, bottom: 18 }}>
-                  <CartesianGrid stroke="#F5DEDB" strokeDasharray="4 6" vertical={false} />
-                  <XAxis dataKey="percent" tickFormatter={(v) => `${v}%`} tick={{ fill: "#7D6A6D", fontSize: 12 }}
-                    axisLine={false} tickLine={false}
-                    label={{ value: "% of customers contacted", position: "insideBottom", offset: -12, fill: "#7D6A6D", fontSize: 12 }} />
-                  <YAxis tickFormatter={k} tick={{ fill: "#7D6A6D", fontSize: 12 }} axisLine={false} tickLine={false} width={52} />
-                  <Tooltip content={<ProfitTooltip />} />
-                  <ReferenceLine x={best.percent} stroke="#E5484D" strokeDasharray="5 5" strokeWidth={1.5}
-                    label={{ value: `Peak ${k(best.profit)} at ${best.percent}%`, position: "top", fill: "#7A1E24", fontSize: 12, fontWeight: 700 }} />
-                  {METHODS.map((mt) => (
-                    <Line key={mt.key} type="monotone" dataKey={mt.key} stroke={mt.color}
-                      strokeWidth={mt.key === "Random" ? 2 : 3}
-                      dot={{ r: 3.5, fill: "#fff", stroke: mt.color, strokeWidth: 2 }}
-                      activeDot={{ r: 6 }} isAnimationActive={false} />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="panel-foot">Profit peaks at about <b>{best.percent}%</b> contacted. Beyond that, extra offers go to people who would stay anyway or react badly.</p>
-          </section>
+      {/* ---------- quick stats ---------- */}
+      <section className="stat-tiles" aria-label="Customer base">
+        <div className="stat-tile"><span>Customers</span><b>{num(total)}</b></div>
+        <div className="stat-tile"><span>Staying today</span><b>{pct(s.retention_rate, 1)}</b></div>
+        <div className="stat-tile"><span>Monthly revenue</span><b>{kmoney(s.monthly_revenue)}</b></div>
+        <div className="stat-tile is-alert"><span>Monthly revenue at high risk</span><b>{kmoney(s.monthly_revenue_at_risk)}</b></div>
+      </section>
 
-          {/* ---------- investment summary ---------- */}
-          <section className="ax-raised panel">
-            <h2 className="panel-title with-icon"><IconTile name="calc" tone="indigo" size={34} glyph={17} />Investment summary</h2>
-            <dl className="summary-rows">
-              <div><dt>Best strategy</dt><dd><span className="pill pill-indigo">Churn-risk targeting</span></dd></div>
-              <div><dt>Peak profit</dt><dd><span className="pill pill-emerald mono">{k(best.profit)} at {best.percent}%</span></dd></div>
-              <div><dt>Profit at 20%</dt><dd><span className="pill mono">{k(at20.profit)}</span></dd></div>
-              <div><dt>Uplift model peak</dt><dd><span className="pill mono">{k(upliftPeak.profit)} at {upliftPeak.percent}%</span></dd></div>
-              <div><dt>Random targeting</dt><dd><span className="pill mono">~{k(randomPeak.profit)} max</span></dd></div>
-            </dl>
-            <Link to="/campaign" className="ax-button">Plan a campaign</Link>
-          </section>
-        </div>
-
-        {/* ---------- accounts to rescue ---------- */}
-        <section className="ax-raised panel">
-          <div className="panel-head">
-            <h2 className="panel-title">Accounts to rescue first</h2>
-            <Link to="/customers" className="text-link">See all customers</Link>
+      {/* ---------- what to do ---------- */}
+      <section aria-labelledby="todo-title">
+        <h2 id="todo-title" className="section-title">What should we do with each customer?</h2>
+        <ul className="moods">
+          {ACTION_ORDER.map((key) => {
+            const a = ACTION_STYLE[key];
+            const n = s.action_counts[key] || 0;
+            return (
+              <li key={key}>
+                <Link to={`/customers?action=${encodeURIComponent(key)}`} className="mood">
+                  <span className={`mood-icon mood-${a.tone}`}>{Glyph[a.glyph]({ size: 30, sw: 2 })}</span>
+                  <b>{a.label}</b>
+                  <span>{num(n)} customers, {pct(n / total)}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="risk-strip">
+          <div className="risk-bar" role="img"
+            aria-label={["High", "Medium", "Low"].map((k) => `${RISK_STYLE[k].label} ${pct(s.risk_counts[k] / total)}`).join(", ")}>
+            {["High", "Medium", "Low"].map((k) => (
+              <span key={k} style={{ flexGrow: s.risk_counts[k], background: RISK_STYLE[k].color }} />
+            ))}
           </div>
-          <ul className="rescue-grid">
-            {s.top_at_risk.slice(0, 6).map((c) => (
-              <li key={c.customerID}>
-                <Link to={`/customers/${c.customerID}`} className="rescue-item ax-hover">
-                  <span className="avatar">{initials(c.name)}</span>
-                  <span className="rescue-who">
-                    <b>{c.name}</b>
-                    <small>{c.Contract} · {c.tenure} mo · <span className="mono">${c.MonthlyCharges.toFixed(0)}</span>/mo</small>
-                  </span>
-                  <span className="rescue-stay">
-                    <span className="mono">{pc(c.chance_of_staying)}</span>
-                    <small>chance of staying</small>
-                  </span>
+          <ul className="risk-keys">
+            {["High", "Medium", "Low"].map((k) => (
+              <li key={k}>
+                <Link to={`/customers?risk=${k}`}>
+                  <i style={{ background: RISK_STYLE[k].color }} />{RISK_STYLE[k].label} <b>{num(s.risk_counts[k])}</b>
                 </Link>
               </li>
             ))}
           </ul>
-        </section>
+        </div>
+      </section>
 
-        <SimulationBanner />
-      </div>
+      {/* ---------- collections ---------- */}
+      {COLLECTIONS.map((c) => <CollectionRow key={c.key} spec={c} />)}
 
-      {/* ---------- right column ---------- */}
-      <aside className="ov-side">
-        <section className="ax-raised panel takeaway">
-          <h2 className="panel-title with-icon"><IconTile name="sparkle" tone="indigo" size={34} glyph={17} />Key takeaway</h2>
-          <p>Contacting about {best.percent}% of customers gives the highest profit.</p>
-          <div className="takeaway-figure ax-raised">
-            <IconTile name="chart" tone="indigo" size={46} glyph={22} />
-            <div>
-              <b className="mono">{k(best.profit)}</b>
-              <span>Peak campaign profit ({best.percent}% contacted)</span>
-            </div>
-          </div>
-        </section>
+      {/* ---------- why they leave ---------- */}
+      <section aria-labelledby="why-title">
+        <h2 id="why-title" className="section-title">Why customers leave</h2>
+        <ul className="why">
+          {reasons.map((r) => (
+            <li key={r.risky} className="why-card">
+              <b className="why-big">{pct(r.a)}</b>
+              <span className="why-label">{r.risky}</span>
+              <span className="why-track" aria-hidden="true">
+                <span className="why-fill" style={{ width: pct(r.a) }} />
+                <span className="why-mark" style={{ left: pct(r.b) }} />
+              </span>
+              <span className="why-vs">of them left, vs {pct(r.b)} {r.safe}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        <section className="ax-raised panel">
-          <h2 className="panel-title">Why customers leave</h2>
-          <ul className="reasons">
-            {reasons.map((r) => (
-              <li key={r.title} className="reason ax-raised">
-                <IconTile name={r.icon} tone="lavender" size={38} glyph={18} />
-                <div>
-                  <b>{r.title}</b>
-                  <span>{r.text}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </aside>
+      <SimulationBanner />
     </div>
   );
 }

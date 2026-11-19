@@ -16,8 +16,8 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MODEL_DIR = Path(os.getenv("MODEL_DIR", REPO_ROOT / "ml" / "models"))
 RESULTS_DIR = Path(os.getenv("RESULTS_DIR", REPO_ROOT / "ml" / "results"))
-# Aircel = FICTIONAL demo company: 7,043 real anonymous Telco records + generated fake names
-CUSTOMER_DATA = Path(os.getenv("CUSTOMER_DATA", REPO_ROOT / "backend" / "data" / "robic_customers.csv"))
+# myDel = FICTIONAL demo company: 7,043 real anonymous Telco records + generated fake names
+CUSTOMER_DATA = Path(os.getenv("CUSTOMER_DATA", REPO_ROOT / "backend" / "data" / "mydel_customers.csv"))
 HIGH_RISK = 0.6  # churn probability at or above this = "High" risk
 PARAMS_PATH = Path(os.getenv("PARAMS_PATH", REPO_ROOT / "params.yaml"))
 
@@ -53,10 +53,10 @@ class ModelService:
         self.classical = _read_json("classical_metrics.json")
         self.uplift_metrics = _read_json("uplift_metrics.json")
         self.roi = _read_json("roi_results.json")
-        self.robic_roi = _read_json("robic_roi.json")
+        self.mydel_roi = _read_json("mydel_roi.json")
         self.shap = _read_json("shap_importance.json")
 
-        # Aircel's customers, already scored (out-of-fold) by ml/score_customers.py
+        # myDel's customers, already scored (out-of-fold) by ml/score_customers.py
         self.customers = pd.read_csv(CUSTOMER_DATA, keep_default_na=False)
         self.customers["chance_of_staying"] = 1 - self.customers["churn_prob"]
         self.customers["risk_level"] = self.customers["churn_prob"].map(self.risk_level)
@@ -137,7 +137,7 @@ class ModelService:
         high = c[c["risk_level"] == "High"]
         top_risk = c.sort_values("churn_prob", ascending=False).head(10)
         return {
-            "company": "Aircel",
+            "company": "myDel",
             "n_customers": int(len(c)),
             "retention_rate": round(1 - float(c["Churn"].mean()), 4),  # real: stayed last month
             "churn_rate": round(float(c["Churn"].mean()), 4),

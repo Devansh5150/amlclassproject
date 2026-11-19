@@ -1,60 +1,47 @@
+// Customers (/customers): quick filter chips, then a card grid or a table. Filters live in the URL.
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api.js";
-import {
-  ActionBadge,
-  Card,
-  Loading,
-  PageHeader,
-  RiskBadge,
-  StayBar,
-  useApi
-} from "../components/ui.jsx";
-import {
-  SearchIcon,
-  FilterIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusIcon,
-  XIcon
-} from "../components/icons.jsx";
-import { ACTION_STYLE } from "../theme.js";
+import { ActionBadge, Loading, Pager, RiskBadge, useApi } from "../components/ui.jsx";
+import { Glyph, Segmented, Signal } from "../components/kit.jsx";
+import CustomerCard from "../components/CustomerCard.jsx";
+import { ACTION_STYLE, num } from "../theme.js";
 
-const PAGE = 25;
+const PAGE = 24;
 const SORTS = {
-  churn_prob: "Highest churn risk first",
-  chance_of_staying: "Highest retention first",
-  MonthlyCharges: "Highest monthly charge",
-  tenure: "Longest tenure first",
-  name: "Subscriber Name (A–Z)",
+  churn_prob: "Most likely to leave",
+  uplift_score: "Discount helps most",
+  chance_of_staying: "Least likely to leave",
+  MonthlyCharges: "Highest bill",
+  tenure: "Longest with us",
+  name: "Name, A to Z",
 };
 
-// Generates stable pleasant pastel avatar background colors
-function getAvatarColor(name = "") {
-  const colors = [
-    { bg: "#dbeafe", text: "#1d4ed8" },
-    { bg: "#fce7f3", text: "#be185d" },
-    { bg: "#FDE4E2", text: "#B8282E" },
-    { bg: "#fee2e2", text: "#CC3339" },
-    { bg: "#ccfbf1", text: "#0f766e" },
-    { bg: "#fef3c7", text: "#b45309" },
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
-  return colors[hash % colors.length];
-}
+// One-tap filters: [label, param, value]
+const QUICK = [
+  ["High risk", "risk", "High"],
+  ["Month-to-month", "contract", "Month-to-month"],
+  ["Discount works", "action", "Send retention offer"],
+  ["Call instead", "action", "Try non-discount retention"],
+  ["Don't contact", "action", "Do not contact"],
+];
+
+const VIEWS = [{ value: "cards", label: "Cards" }, { value: "table", label: "Table" }];
+const readView = () => { try { return localStorage.getItem("mydel_customers_view") || "cards"; } catch { return "cards"; } };
 
 export default function Customers() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [search, setSearch] = useState(params.get("q") || "");
+  const q = params.get("q") || "";
+  const [search, setSearch] = useState(q);
+  const [view, setView] = useState(readView);
+  const [more, setMore] = useState(false);
 
   const risk = params.get("risk") || "";
   const contract = params.get("contract") || "";
   const action = params.get("action") || "";
   const sort = params.get("sort") || "churn_prob";
   const page = Number(params.get("page") || 0);
-  const q = params.get("q") || "";
 
   const set = (key, value) => {
     const next = new URLSearchParams(params);
@@ -63,254 +50,167 @@ export default function Customers() {
     setParams(next);
   };
 
+  // keep the box in sync when the header search changes the URL
+  useEffect(() => { setSearch(q); }, [q]);
   useEffect(() => {
-    const t = setTimeout(() => {
-      if (search !== q) set("q", search);
-    }, 300);
+    const t = setTimeout(() => { if (search !== q) set("q", search); }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
+  useEffect(() => { try { localStorage.setItem("mydel_customers_view", view); } catch { /* ignore */ } }, [view]);
+  useEffect(() => {
+    if (!more) return;
+    const esc = (e) => e.key === "Escape" && setMore(false);
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [more]);
 
   const { data, error, loading } = useApi(
-    () =>
-      api.customers({
-        q,
-        risk,
-        contract,
-        action,
-        limit: PAGE,
-        offset: page * PAGE,
-        sort_by: sort,
-        descending: sort === "chance_of_staying" ? false : sort !== "name",
-      }),
+    () => api.customers({
+      q, risk, contract, action, limit: PAGE, offset: page * PAGE, sort_by: sort,
+      descending: sort === "chance_of_staying" ? false : sort !== "name",
+    }),
     [q, risk, contract, action, sort, page]
   );
 
   const pages = data ? Math.max(1, Math.ceil(data.total / PAGE)) : 1;
-  const hasFilters = Boolean(risk || contract || action || q);
+  const active = [risk, contract, action, q].filter(Boolean).length;
+  const current = { risk, contract, action };
 
   return (
-    <>
-      <PageHeader
-        badge="Subscriber Database"
-        title="Customer Directory & Risk Roster"
-        right={
-          <Link to="/predict" className="button-link">
-            <PlusIcon size={16} />
-            <span>Simulate New Customer</span>
-          </Link>
-        }
-      >
-        Real-time telemetry, tenure tracking, and causal action recommendations for all{" "}
-        {data ? ` ${data.total.toLocaleString()} ` : " "}subscribers.
-      </PageHeader>
+    <div className="page">
+      <header className="page-head">
+        <div>
+          <h1>Customers</h1>
+          <p className="lead">Every customer, scored by the churn model, with what the uplift model says to do.</p>
+        </div>
+        <Link to="/predict" className="btn btn-quiet">{Glyph.plus({ size: 16 })}Check a new customer</Link>
+      </header>
 
-      <Card>
-        <div className="filters">
-          <div className="search-box">
-            <SearchIcon size={16} className="search-icon" />
-            <input
-              type="text"
-              className="search"
-              placeholder="Search subscribers by name or ID (e.g. 7590-VHVEG)…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  color: "#94a3b8",
-                  cursor: "pointer",
-                  padding: "4px"
-                }}
-              >
-                <XIcon size={14} />
-              </button>
-            )}
-          </div>
-
-          <select value={risk} onChange={(e) => set("risk", e.target.value)}>
-            <option value="">All Risk Tiers</option>
-            <option value="High">High Risk (≥60%)</option>
-            <option value="Medium">Medium Risk (30-60%)</option>
-            <option value="Low">Low Risk (&lt;30%)</option>
-          </select>
-
-          <select value={contract} onChange={(e) => set("contract", e.target.value)}>
-            <option value="">All Contract Types</option>
-            <option value="Month-to-month">Month-to-month</option>
-            <option value="One year">1-Year Term</option>
-            <option value="Two year">2-Year Term</option>
-          </select>
-
-          <select value={action} onChange={(e) => set("action", e.target.value)}>
-            <option value="">All Causal Actions</option>
-            {Object.entries(ACTION_STYLE).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v.label}
-              </option>
-            ))}
-          </select>
-
-          <select value={sort} onChange={(e) => set("sort", e.target.value)}>
-            {Object.entries(SORTS).map(([k, v]) => (
-              <option key={k} value={k}>
-                Sort: {v}
-              </option>
-            ))}
-          </select>
-
-          {hasFilters && (
-            <button
-              className="ghost"
-              onClick={() => {
-                setSearch("");
-                setParams(new URLSearchParams());
-              }}
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-            >
-              <XIcon size={14} />
-              <span>Reset Filters</span>
-            </button>
+      <div className="filterbar">
+        <label className="search-field">
+          <span className="sr-only">Search customers</span>
+          {Glyph.search({ size: 16 })}
+          <input type="search" placeholder="Name or customer ID" value={search} onChange={(e) => setSearch(e.target.value)} />
+          {search && (
+            <button type="button" className="search-clear" aria-label="Clear search" onClick={() => setSearch("")}>{Glyph.x({ size: 14 })}</button>
           )}
+        </label>
+
+        <div className="chips chips-scroll" role="group" aria-label="Quick filters">
+          <button type="button" className={`chip chip-filter ${more ? "is-open" : ""}`} aria-expanded={more} onClick={() => setMore((m) => !m)}>
+            {Glyph.filter({ size: 15 })}Filters{active > 0 && <span className="chip-count">{active}</span>}
+          </button>
+          {QUICK.map(([label, key, value]) => {
+            const on = current[key] === value;
+            return (
+              <button key={label} type="button" className="chip" aria-pressed={on} onClick={() => set(key, on ? "" : value)}>
+                {label}{on && Glyph.x({ size: 13 })}
+              </button>
+            );
+          })}
+          <label className="chip chip-select">
+            <span className="sr-only">Sort by</span>
+            <select value={sort} onChange={(e) => set("sort", e.target.value)}>
+              {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>Sort: {v}</option>)}
+            </select>
+          </label>
         </div>
 
-        {!data ? (
-          <Loading error={error} />
-        ) : (
-          <>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                margin: "14px 0 8px"
-              }}
-            >
-              <p className="muted" style={{ margin: 0, fontSize: "13px" }}>
-                Showing{" "}
-                <b>
-                  {data.items.length ? page * PAGE + 1 : 0}–
-                  {page * PAGE + data.items.length}
-                </b>{" "}
-                of <b>{data.total.toLocaleString()}</b> active subscribers
-              </p>
-              {loading && <span className="muted small">Refreshing…</span>}
+        {more && (
+          <div className="more-filters" role="dialog" aria-label="Filters">
+            <label className="field"><span>Risk</span>
+              <select value={risk} onChange={(e) => set("risk", e.target.value)}>
+                <option value="">Any risk</option>
+                <option value="High">High (60%+ chance of leaving)</option>
+                <option value="Medium">Medium (30–60%)</option>
+                <option value="Low">Low (under 30%)</option>
+              </select>
+            </label>
+            <label className="field"><span>Contract</span>
+              <select value={contract} onChange={(e) => set("contract", e.target.value)}>
+                <option value="">Any contract</option>
+                <option value="Month-to-month">Month-to-month</option>
+                <option value="One year">One year</option>
+                <option value="Two year">Two year</option>
+              </select>
+            </label>
+            <label className="field"><span>Recommended action</span>
+              <select value={action} onChange={(e) => set("action", e.target.value)}>
+                <option value="">Any action</option>
+                {Object.entries(ACTION_STYLE).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </label>
+            <div className="more-filters-foot">
+              <button type="button" className="btn btn-quiet btn-sm" onClick={() => { setParams((p) => { const n = new URLSearchParams(p); ["risk", "contract", "action", "page"].forEach((k) => n.delete(k)); return n; }); }}>Reset</button>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setMore(false)}>Done</button>
             </div>
+          </div>
+        )}
+      </div>
 
-            <div className="table-wrap">
-              <table className="table clickable">
-                <thead>
-                  <tr>
-                    <th>Subscriber</th>
-                    <th>Region</th>
-                    <th>Contract</th>
-                    <th>Vintage</th>
-                    <th>Monthly Bill</th>
-                    <th>Chance of Staying</th>
-                    <th>Risk Tier</th>
-                    <th>Recommended Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.items.map((c) => {
-                    const avatar = getAvatarColor(c.name);
-                    return (
-                      <tr
-                        key={c.customerID}
-                        onClick={() => navigate(`/customers/${c.customerID}`)}
-                      >
+      {!data ? (
+        <Loading error={error} />
+      ) : (
+        <>
+          <div className="list-meta" aria-live="polite">
+            <span>
+              <b>{num(data.total)}</b> customers{loading ? ", updating…" : ""}
+              {active > 0 && (
+                <button type="button" className="link-btn" onClick={() => { setSearch(""); setParams(new URLSearchParams()); }}>
+                  Clear all filters
+                </button>
+              )}
+            </span>
+            <Segmented label="Layout" options={VIEWS} value={view} onChange={setView} />
+          </div>
+
+          {data.items.length === 0 ? (
+            <div className="empty">
+              {Glyph.search({ size: 28 })}
+              <h2>No customers match</h2>
+              <p>Try a different name, or clear the filters to see everyone.</p>
+              <button type="button" className="btn btn-primary" onClick={() => { setSearch(""); setParams(new URLSearchParams()); }}>Clear filters</button>
+            </div>
+          ) : view === "cards" ? (
+            <div className="card-grid">
+              {data.items.map((c) => <CustomerCard key={c.customerID} c={c} />)}
+            </div>
+          ) : (
+            <section className="panel">
+              <div className="table-wrap">
+                <table className="table clickable">
+                  <thead>
+                    <tr>
+                      <th>Customer</th><th>Region</th><th>Contract</th><th>Customer since</th>
+                      <th className="r">Monthly bill</th><th>Chance of staying</th><th>Risk</th><th>Recommended action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.items.map((c) => (
+                      <tr key={c.customerID} onClick={() => navigate(`/customers/${c.customerID}`)}>
                         <td>
-                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            <div
-                              style={{
-                                width: "32px",
-                                height: "32px",
-                                borderRadius: "8px",
-                                backgroundColor: avatar.bg,
-                                color: avatar.text,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: 700,
-                                fontSize: "12px",
-                                flexShrink: 0
-                              }}
-                            >
-                              {c.name.split(" ").map((p) => p[0]).join("")}
-                            </div>
-                            <div>
-                              <b>{c.name}</b>
-                              <div className="muted small">{c.customerID}</div>
-                            </div>
-                          </div>
+                          <Link to={`/customers/${c.customerID}`} className="row-link" onClick={(e) => e.stopPropagation()}>{c.name}</Link>
+                          <small className="sub">{c.customerID}</small>
                         </td>
                         <td>{c.region}</td>
-                        <td>
-                          <span className="meta-pill">{c.Contract}</span>
-                        </td>
-                        <td>
-                          <span className="muted">{c.customer_since}</span>{" "}
-                          <span className="small">({c.tenure}m)</span>
-                        </td>
-                        <td>
-                          <b>${c.MonthlyCharges.toFixed(2)}</b>
-                        </td>
-                        <td>
-                          <StayBar value={c.chance_of_staying} />
-                        </td>
-                        <td>
-                          <RiskBadge level={c.risk_level} />
-                        </td>
-                        <td>
-                          <ActionBadge action={c.recommended_action} />
-                        </td>
+                        <td>{c.Contract}</td>
+                        <td>{c.customer_since} <span className="muted">({c.tenure} mo)</span></td>
+                        <td className="r">${c.MonthlyCharges.toFixed(2)}</td>
+                        <td><Signal value={c.chance_of_staying} /></td>
+                        <td><RiskBadge level={c.risk_level} /></td>
+                        <td><ActionBadge action={c.recommended_action} /></td>
                       </tr>
-                    );
-                  })}
-                  {data.items.length === 0 && (
-                    <tr>
-                      <td colSpan={8} style={{ textAlign: "center", padding: "36px", color: "#64748b" }}>
-                        No subscribers match the current filter query. Try adjusting your search or resetting filters.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
-            <div className="pager">
-              <button
-                className="ghost pager-btn"
-                disabled={page === 0}
-                onClick={() => set("page", String(page - 1))}
-              >
-                <ChevronLeftIcon size={14} />
-                <span>Previous</span>
-              </button>
-              <span>
-                Page <b>{page + 1}</b> of <b>{pages}</b>
-              </span>
-              <button
-                className="ghost pager-btn"
-                disabled={page + 1 >= pages}
-                onClick={() => set("page", String(page + 1))}
-              >
-                <span>Next</span>
-                <ChevronRightIcon size={14} />
-              </button>
-            </div>
-          </>
-        )}
-      </Card>
-    </>
+          <Pager page={page} pages={pages} onPage={(p) => set("page", String(p))} />
+        </>
+      )}
+    </div>
   );
 }

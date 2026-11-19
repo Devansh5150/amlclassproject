@@ -1,4 +1,4 @@
-# ML Guide: the machine-learning side of Robic, explained
+# ML Guide: the machine-learning side of myDel, explained
 
 This folder explains **everything the ML part of the project does, why, and what it found**. It's written so you can understand it without reading code first. Every chapter links to the real script and chart.
 
@@ -48,7 +48,7 @@ This folder explains **everything the ML part of the project does, why, and what
                 [7] score_customers.py     scores all 7,043 customers (out-of-fold)
                                │           + plain-English reasons + campaign profit table
                                ▼
-              backend/data/robic_customers.csv  +  ml/models/*.joblib  +  ml/results/*.json
+              backend/data/mydel_customers.csv  +  ml/models/*.joblib  +  ml/results/*.json
                                │
                                ▼
                      FastAPI backend  ──►  React website

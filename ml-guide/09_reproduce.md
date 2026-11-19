@@ -14,7 +14,7 @@ Run these from the **project root** (`churn-uplift/`) with the virtual environme
 | 5 | `python ml/plot_simulation.py` | seconds | `sim_design.png` |
 | 6 | `python ml/train_uplift.py` | ~1 min | uplift model, Qini / gain / decile charts |
 | 7 | `python ml/business_roi.py` | seconds | test-set profit table |
-| 8 | `python ml/score_customers.py` | ~3–5 min | `backend/data/robic_customers.csv`, `robic_roi.json` |
+| 8 | `python ml/score_customers.py` | ~3–5 min | `backend/data/mydel_customers.csv`, `mydel_roi.json` |
 | 9 | `pytest backend/tests -q` | seconds | checks the API still works with the new models |
 
 **Order matters:** step 6 and 7 load the model from step 3; step 8 needs steps 3 and 6. Restart the backend after retraining so it loads the new files.

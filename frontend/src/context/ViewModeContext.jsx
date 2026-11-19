@@ -4,11 +4,11 @@ const ViewModeContext = createContext();
 
 export function ViewModeProvider({ children }) {
   const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem("aircel_view_mode") || "manager";
+    return localStorage.getItem("mydel_view_mode") || "manager";
   });
 
   useEffect(() => {
-    localStorage.setItem("aircel_view_mode", viewMode);
+    localStorage.setItem("mydel_view_mode", viewMode);
   }, [viewMode]);
 
   return (

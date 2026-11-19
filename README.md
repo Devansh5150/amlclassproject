@@ -4,6 +4,20 @@
 
 **Group 11 · Track 3 Project Showcase · Topic A**
 
+The demo app is built for **myDel**, a *fictional* phone company. Its 7,043 customers are the real, anonymous IBM Telco records with generated fake names and regions.
+
+**Phase status: all phases complete**
+| Phase | What | Where |
+|---|---|---|
+| 1 | Project setup | folders, `requirements.txt`, `.gitignore` |
+| 2 | Data download, cleaning, EDA | `ml/download_data.py`, `ml/preprocess.py`, `notebooks/01_eda.ipynb` |
+| 3 | Classical churn models + SHAP + calibration | `ml/train_classical.py` → [§6.1](#61-classical-churn-models-phase-3) |
+| 4 | Simulated offer + T-learner uplift | `ml/simulate_treatment.py`, `ml/train_uplift.py` → [§6.2](#62-uplift-extension-phase-4-️-simulated-treatment) |
+| 5 | Business ROI + recommendation | `ml/business_roi.py`, `params.yaml` → [§7](#7-business-recommendation-phase-5) |
+| 6 | FastAPI backend + SQLite + tests | `backend/` → [§8](#8-backend-api-phase-6) |
+| 7 | React frontend (3 role-based views) | `frontend/` → [§9](#9-frontend-phase-7) |
+| 8 | Screenshots, demo script, deployment | `docs/screenshots/` → [§10](#10-screenshots--demo-phase-8), [§11](#11-deployment) |
+
 ## 1. Problem
 Telecom companies lose revenue when customers leave (churn). We:
 1. Predict **who is likely to churn** using classical ML models.
@@ -54,11 +68,15 @@ python ml/preprocess.py      # cleans it  -> data/processed/telco_clean.csv
 ```
 churn-uplift/
   data/          raw + processed data (raw is git-ignored)
-  notebooks/     EDA and experiments
-  ml/            training + evaluation scripts, saved models
-  backend/       FastAPI app
-  frontend/      React app
-  README.md
+  notebooks/     EDA notebook + charts
+  ml/            training + evaluation scripts, saved models, results/figures
+  backend/       FastAPI app, SQLite database, tests, scored myDel customers
+  frontend/      React (Vite) app
+  docs/          START_HERE guide + screenshots
+  ml-guide/      plain-English walkthrough of every ML step (+ viva prep)
+  params.yaml    business assumptions and decision thresholds
+  start.bat      one-click start on Windows
+  render.yaml    backend deploy config (Render)
 ```
 
 ## 5. Setup
@@ -68,8 +86,22 @@ py -3.12 -m venv venv
 venv\Scripts\activate          # Windows
 # source venv/bin/activate     # macOS / Linux
 pip install -r requirements.txt
+
+# Frontend (Node 18+)
+cd frontend && npm install && cd ..
 ```
-*(Run instructions for the backend and frontend will be added in later phases.)*
+
+**Run the app**
+- **Windows, one click:** double-click `start.bat`. It starts the backend and frontend and opens http://127.0.0.1:5173.
+- **Manually (two terminals, from the project root):**
+  ```bash
+  # terminal 1: backend  -> http://127.0.0.1:8000  (API docs at /docs)
+  uvicorn backend.app.main:app --reload
+  # terminal 2: frontend -> http://127.0.0.1:5173
+  cd frontend && npm run dev
+  ```
+- **Tests:** `pytest -q` (11 API + database tests).
+- **Retrain everything from scratch:** see [ml-guide/09_reproduce.md](ml-guide/09_reproduce.md). Fixed seeds give the same numbers on every run.
 
 ## 6. Results
 
@@ -178,5 +210,69 @@ Profit on the 1,409 test customers:
 3. Use the uplift model as a **filter**: skip customers with clearly negative predicted uplift (below −0.02, set by `backfire_margin` in `params.yaml`). Values within ±0.02 of zero are noise between the two T-learner models, not real "sleeping dogs".
 4. Run a **real A/B test** of the offer before trusting uplift scores, because the effects here are simulated.
 
-## 8. Screenshots & Demo
-*(Added in Phase 8.)*
+## 8. Backend API (Phase 6)
+FastAPI app in `backend/app/`. Models and the scored customer file are loaded **once** at start-up (`model_service.py`).
+The 7,043 myDel customers are scored **out-of-fold** by `ml/score_customers.py`, so no customer is scored by a model that saw them in training (out-of-fold ROC-AUC 0.846).
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | API up, models loaded, customer count |
+| `GET /summary` | dashboard numbers: retention, revenue at risk, risk counts, top drivers |
+| `GET /customers` | search / filter / sort / paginate the customer list |
+| `GET /customers/{id}` | one customer: chance of staying, uplift, reasons (SHAP), recommended action |
+| `POST /predict` | score any customer profile (`?save=true` stores it in history) |
+| `GET /metrics` | classical, uplift and ROI results for the model pages |
+| `GET/POST /customers/{id}/contacts`, `PATCH/DELETE /contacts/{id}` | contact log (SQLite) |
+| `GET /contacts`, `GET /contacts/stats`, `GET /predictions/history` | campaign tracking |
+
+**Decision rules** (`ModelService.decide`, thresholds in `params.yaml`), checked in order:
+1. Predicted uplift < −0.02 → **Do not contact** (offer may backfire)
+2. Churn probability < 0.30 → **No action needed**
+3. Uplift × (12 × monthly bill) − $50 > 0 → **Send retention offer**
+4. Otherwise → **Try non-discount retention** (service call, fix the root problem)
+
+Input is validated with Pydantic (e.g. negative tenure returns a 422 error). Tests in `backend/tests/` use a temporary database, so they never touch `backend/data/mydel.db`.
+
+## 9. Frontend (Phase 7)
+React 18 + Vite + Recharts in `frontend/`. One app with **three views**, switched at the top:
+
+| View | Route | For |
+|---|---|---|
+| Manager | `/manager` | KPIs, risk mix, recommended actions, campaign profit curve, why customers leave |
+| Support Agent | `/agent` | call queue of at-risk customers, call script, log the outcome |
+| Data Scientist | `/scientist` | model metrics, calibration, Qini, SHAP |
+
+Shared pages: `/customers` (directory + CSV export), `/customers/:id` (customer profile + contact log), `/campaign` (budget slider → profit), `/models` (model comparison), `/predict` (score a new customer).
+Every page that shows uplift numbers carries the **"simulated offer"** disclaimer.
+
+## 10. Screenshots & Demo (Phase 8)
+| | |
+|---|---|
+| **Manager overview**<br>![Manager](docs/screenshots/dashboard.png) | **Support agent**<br>![Agent](docs/screenshots/agent.png) |
+| **Data scientist**<br>![Scientist](docs/screenshots/scientist.png) | **Customer directory**<br>![Customers](docs/screenshots/customers.png) |
+| **Customer profile**<br>![Customer](docs/screenshots/customer_detail.png) | **Campaign planner**<br>![Campaign](docs/screenshots/campaign.png) |
+| **Model comparison**<br>![Models](docs/screenshots/models.png) | **Live predictor**<br>![Predict](docs/screenshots/predict.png) |
+
+**5-minute demo script**
+1. **Manager view:** "myDel has 7,043 customers and a 26.5% churn rate. $88k of monthly revenue sits with high-risk customers."
+2. **Campaign profit chart:** profit peaks at about 40% contacted, and contacting everyone earns almost nothing. Churn-risk targeting beats uplift and random.
+3. **Customers → open the top customer:** show chance of staying, the SHAP reasons in plain English, and the recommended action with its reason.
+4. **Support Agent view:** pick a customer in the call queue, add a note and click an outcome (e.g. "Saved / Accepted"). Open that customer's profile: the call now appears in their **Contact Log**, saved in SQLite.
+5. **Predictor:** enter a new month-to-month, fiber, e-check customer and watch the risk jump. Switch to a two-year contract and watch it drop.
+6. **Data Scientist view:** ROC-AUC 0.846, calibration fixed the 39% → 26.7% average, and uplift **lost** to churn risk in our simulation, with the reason.
+7. **Close with the honest caveat:** the uplift effects are simulated. A real A/B test is the next step.
+
+## 11. Deployment
+Config is ready. It needs your own Render and Vercel accounts.
+1. **Backend → Render:** New → Blueprint → pick this repo (`render.yaml` creates service `mydel-api`). After the frontend is live, set `CORS_ORIGINS` to the Vercel URL.
+2. **Frontend → Vercel:** import the repo, set root directory `frontend`, and set the env var `VITE_API_URL` to the Render URL. `vercel.json` handles page routes.
+3. Check `https://<render-url>/health` returns `"status": "ok"`.
+
+Note: the free Render plan sleeps when idle, so the first request after a pause takes about 30–60 s. Open the site once before a live demo.
+
+## 12. Limitations
+- The retention-offer effect is **simulated**, so all uplift and $ results illustrate the method. They are not evidence about real customers.
+- The simulation's design favours churn-risk ranking (the offer only helps real churners), so "risk beats uplift" partly follows from our assumptions.
+- The Logistic Regression T-learner cannot learn interaction rules like "fiber AND e-check AND bill > $90", so it mislabels some segments.
+- Model hyperparameters were set by hand, not tuned, because the three models were already within CV noise.
+- See [ml-guide/10_limitations_and_viva.md](ml-guide/10_limitations_and_viva.md) for more detail and viva questions.
