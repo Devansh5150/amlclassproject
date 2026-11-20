@@ -21,8 +21,8 @@ function Ribbon({ action, uplift }) {
   if (!s) return null;
   return (
     <span className={`ribbon ribbon-${s.tone}`}>
-      {Glyph[s.glyph]({ size: 13, sw: 2.4 })}
-      {s.label}
+      <span className="ribbon-ico">{Glyph[s.glyph]({ size: 13, sw: 2.4 })}</span>
+      <span className="ribbon-label">{s.label}</span>
       {action === "Send retention offer" && uplift > 0 && <b>+{Math.round(uplift * 100)} pts</b>}
     </span>
   );

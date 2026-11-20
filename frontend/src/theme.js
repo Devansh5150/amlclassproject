@@ -1,28 +1,28 @@
 // myDel Retention Desk: colour tokens shared by charts and badges.
 // Keep in sync with the :root variables in styles.css.
-// Series colours are tuned for the dark (default) theme; gridlines, axes and labels
-// are themed in CSS, so only data colours live here.
+// Warm-grey canvas with charcoal ink and a neon-yellow accent.
 export const C = {
-  ink: "#F5F5F7",
-  ink2: "#A1A5B0",
-  ink3: "#7C808C",
-  rule: "#2C2E35",
-  grid: "#24262C",
-  paper: "#22242B",
-  brand: "#FF6689",  // accent: brand + churn-risk targeting
-  stay: "#2E9E4F",   // likely to stay
-  hold: "#C08A1E",   // could go either way / call instead
-  drop: "#E0622F",   // likely to leave (orange, never the accent pink)
-  offer: "#5B8DEF",  // discount ribbon
-  uplift: "#A387FF", // uplift model
-  quiet: "#6F7480",  // random / no action
+  ink: "#232322",
+  ink2: "#6B6A66",
+  ink3: "#8F8E89",
+  rule: "#CFCEC8",
+  grid: "#DDDCD7",
+  paper: "#E6E5E0",
+  brand: "#232322",  // churn-risk targeting: the dark "ink" series
+  accent: "#E4F23A", // neon yellow highlight (markers, peak dots)
+  stay: "#3F8A55",   // likely to stay
+  hold: "#B7871F",   // could go either way / call instead
+  drop: "#D2532B",   // likely to leave
+  offer: "#A3B312",  // discount (olive yellow, readable on the grey canvas)
+  uplift: "#9AAA10", // uplift model
+  quiet: "#A9A8A2",  // random / no action
 };
 C.line = C.brand;
 
 // Legacy alias used by a few charts
 export const COLORS = { primary: C.line, grid: C.grid, axis: C.ink2, neutral: C.quiet };
 
-export const AXIS = { fill: C.ink2, fontSize: 12, fontFamily: "Figtree, sans-serif" };
+export const AXIS = { fill: C.ink2, fontSize: 12, fontFamily: "Manrope, sans-serif" };
 
 // Plain-English names for the targeting methods
 export const METHOD_LABEL = {
@@ -42,7 +42,7 @@ export const METHOD_COLORS = {
 };
 
 export const MODEL_COLORS = {
-  "Logistic Regression": "#6F7480",
+  "Logistic Regression": "#A9A8A2",
   "Random Forest": C.brand,
   XGBoost: C.uplift,
 };
@@ -58,8 +58,8 @@ export const ACTION_ORDER = ["Send retention offer", "Try non-discount retention
 export const ACTION_FILL = {
   "Send retention offer": C.offer,
   "Try non-discount retention": C.hold,
-  "No action needed": "#4A4D57",
-  "Do not contact": "#8A8F9C",
+  "No action needed": "#CFCEC8",
+  "Do not contact": "#8E8D89",
 };
 
 export const RISK_STYLE = {

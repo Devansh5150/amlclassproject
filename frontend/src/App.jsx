@@ -82,28 +82,6 @@ function Activity() {
   );
 }
 
-// Dark is the default; the person can switch to light and the choice is remembered.
-function readTheme() { try { return localStorage.getItem("mydel_theme"); } catch { return null; } }
-function ThemeToggle() {
-  const [pref, setPref] = useState(readTheme);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (pref) root.dataset.theme = pref; else delete root.dataset.theme;
-    try { pref ? localStorage.setItem("mydel_theme", pref) : localStorage.removeItem("mydel_theme"); } catch { /* ignore */ }
-  }, [pref]);
-
-  const isDark = pref ? pref === "dark" : true;
-  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
-  return (
-    <button type="button" className="icon-btn theme-btn" aria-label={label} title={label}
-      onClick={() => setPref(isDark ? "light" : "dark")}>
-      <span className="i-moon">{Glyph.moon({ size: 18 })}</span>
-      <span className="i-sun">{Glyph.sun({ size: 18 })}</span>
-    </button>
-  );
-}
-
 function AppContent() {
   const { viewMode, setViewMode } = useViewMode();
   const navigate = useNavigate();
@@ -146,69 +124,76 @@ function AppContent() {
   return (
     <div className="app">
       <a href="#main" className="skip-link">Skip to content</a>
-      <header className="top">
-        <div className="top-row">
-          <Link to={`/${persona}`} className="brand" aria-label="myDel retention desk, overview">
-            <Mark />
-            <span><b>myDel</b><small>Retention desk</small></span>
-          </Link>
-
-          <form className="top-search" role="search" onSubmit={search}>
-            {Glyph.search({ size: 18 })}
-            <label htmlFor="global-search" className="sr-only">Search customers</label>
-            <input id="global-search" type="search" value={q} onChange={(e) => setQ(e.target.value)}
-              placeholder="Search for a customer by name or ID" />
-          </form>
-
-          <div className="top-right">
-          <div className="persona" role="radiogroup" aria-label="Viewing as">
-            {PERSONAS.map((p) => (
-              <button key={p.value} type="button" role="radio" aria-checked={persona === p.value}
-                className={persona === p.value ? "is-on" : ""}
-                onClick={() => { setViewMode(p.value); navigate(`/${p.value}`); }}>
-                {Glyph[p.icon]({ size: 16 })}<span>{p.label}</span>
-              </button>
+      <div className="frame">
+        <header className="top">
+          <div className="notch">
+            <Link to={`/${persona}`} className="brand" aria-label="myDel retention desk, overview">
+              <Mark />
+              <span><b>myDel</b><small>Retention desk</small></span>
+            </Link>
+          </div>
+          <nav className="tabs" aria-label="Main">
+            {NAV.map((item) => (
+              <NavLink key={item.to} to={item.to.replace(":persona", persona)} end={item.end}
+                className={({ isActive }) => `tab ${isActive ? "is-on" : ""}`}>
+                <span className="tab-icon">{Glyph[item.icon]({ size: 17 })}</span>
+                <span>{item.label}</span>
+              </NavLink>
             ))}
+          </nav>
+        </header>
+
+        <div className="canvas">
+          <div className="canvas-bar">
+            <form className="top-search" role="search" onSubmit={search}>
+              {Glyph.search({ size: 18 })}
+              <label htmlFor="global-search" className="sr-only">Search customers</label>
+              <input id="global-search" type="search" value={q} onChange={(e) => setQ(e.target.value)}
+                placeholder="Search for a customer by name or ID" />
+            </form>
+            <Link to="/predict" className="plus-btn" aria-label="Check a new customer" title="Check a new customer">
+              {Glyph.plus({ size: 20 })}
+            </Link>
           </div>
 
-          <ThemeToggle />
-          <div className="top-tools">
-            <Activity />
-            <button type="button" className="icon-btn" onClick={handleExport} aria-label="Export top 500 customers as CSV" title="Export top 500 (CSV)">
-              {Glyph.download({ size: 18 })}
-            </button>
-          </div>
+          <main id="main" className="main" tabIndex={-1}>
+            <Routes>
+              <Route path="/" element={<Navigate to={`/${savedPersona}`} replace />} />
+              <Route path="/manager" element={<ManagerOverview />} />
+              <Route path="/agent" element={<DashboardAgent />} />
+              <Route path="/scientist" element={<DashboardDataScientist />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/customers/:id" element={<CustomerDetail />} />
+              <Route path="/campaign" element={<Campaign />} />
+              <Route path="/models" element={<Models />} />
+              <Route path="/predict" element={<Predictor />} />
+            </Routes>
+          </main>
+
+          <footer className="foot">
+            myDel is a fictional phone company. Data: IBM Telco, 7,043 customers. Random Forest churn model, T-learner uplift model.
+          </footer>
+
+          <div className="dock" role="toolbar" aria-label="View and tools">
+            <span className="dock-cal" aria-hidden="true">{Glyph.calendar({ size: 18 })}</span>
+            <div className="persona" role="radiogroup" aria-label="Viewing as">
+              {PERSONAS.map((p) => (
+                <button key={p.value} type="button" role="radio" aria-checked={persona === p.value}
+                  className={persona === p.value ? "is-on" : ""}
+                  onClick={() => { setViewMode(p.value); navigate(`/${p.value}`); }}>
+                  <span className="persona-ico">{Glyph[p.icon]({ size: 15 })}</span><span className="persona-label">{p.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="dock-tools">
+              <Activity />
+              <button type="button" className="icon-btn" onClick={handleExport} aria-label="Export top 500 customers as CSV" title="Export top 500 (CSV)">
+                {Glyph.download({ size: 17 })}
+              </button>
+            </div>
           </div>
         </div>
-
-        <nav className="tabs" aria-label="Main">
-          {NAV.map((item) => (
-            <NavLink key={item.to} to={item.to.replace(":persona", persona)} end={item.end}
-              className={({ isActive }) => `tab ${isActive ? "is-on" : ""}`}>
-              <span className={`tab-icon tab-${item.icon}`}>{Glyph[item.icon]({ size: 20 })}</span>
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-      </header>
-
-      <main id="main" className="main" tabIndex={-1}>
-        <Routes>
-          <Route path="/" element={<Navigate to={`/${savedPersona}`} replace />} />
-          <Route path="/manager" element={<ManagerOverview />} />
-          <Route path="/agent" element={<DashboardAgent />} />
-          <Route path="/scientist" element={<DashboardDataScientist />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/customers/:id" element={<CustomerDetail />} />
-          <Route path="/campaign" element={<Campaign />} />
-          <Route path="/models" element={<Models />} />
-          <Route path="/predict" element={<Predictor />} />
-        </Routes>
-      </main>
-
-      <footer className="foot">
-        myDel is a fictional phone company. Data: IBM Telco, 7,043 customers. Random Forest churn model, T-learner uplift model.
-      </footer>
+      </div>
     </div>
   );
 }

@@ -109,7 +109,7 @@ export default function Campaign() {
               <Line key={m} name={METHOD_LABEL[m]} type="monotone" dataKey={METHOD_LABEL[m]} stroke={METHOD_COLORS[METHOD_LABEL[m]]}
                 strokeWidth={m === "Random" ? 2 : 2.75} strokeDasharray={m === "Random" ? "5 5" : undefined} dot={false} isAnimationActive={false} />
             ))}
-            <ReferenceDot x={best.percent} y={best.profit} r={6} fill={C.line} stroke="#fff" strokeWidth={2.5} />
+            <ReferenceDot x={best.percent} y={best.profit} r={8} fill={C.accent} stroke={C.ink} strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
         <SimulatedNote />

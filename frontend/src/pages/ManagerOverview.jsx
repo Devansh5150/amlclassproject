@@ -102,7 +102,7 @@ export default function ManagerOverview() {
                 <Line key={mt.key} name={mt.label} type="monotone" dataKey={mt.key} stroke={mt.color} strokeWidth={mt.width}
                   strokeDasharray={mt.dash} dot={false} activeDot={{ r: 5, strokeWidth: 0 }} isAnimationActive={false} />
               ))}
-              <ReferenceDot x={best.percent} y={best.profit} r={6} fill={C.brand} stroke="#fff" strokeWidth={2.5} />
+              <ReferenceDot x={best.percent} y={best.profit} r={8} fill={C.accent} stroke={C.ink} strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
           <p className="chart-foot">Ranking by uplift peaks a little lower, at <b>{kmoney(upliftPeak.profit)}</b>.</p>
